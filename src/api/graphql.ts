@@ -7,6 +7,7 @@ const GRAPHQL_URL = "https://api.fly.io/graphql";
 
 function useGraphQL<T>(query: string) {
   const authToken = getAuthToken();
+  logger.debug(`Auth token present: ${authToken ? "yes" : "no"}, length: ${authToken.length}`);
 
   return useFetch<T>(GRAPHQL_URL, {
     method: "POST",
@@ -15,6 +16,13 @@ function useGraphQL<T>(query: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ query }),
+    keepPreviousData: false,
+    onData: (data) => {
+      logger.debug("GraphQL response received", JSON.stringify(data).slice(0, 200));
+    },
+    onError: (error) => {
+      logger.error("GraphQL request failed", error.message);
+    },
   });
 }
 

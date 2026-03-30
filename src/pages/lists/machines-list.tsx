@@ -14,7 +14,7 @@ interface Props {
 
 export function MachinesList({ isLoading: parentLoading }: Props) {
   const { data, isLoading: appsLoading } = useApplications();
-  const apps = data?.data?.apps?.nodes ?? [];
+  const apps = (data?.data?.apps?.nodes ?? []).filter(Boolean);
   const appNames = apps.map((a) => a.name);
 
   const [selectedApp, setSelectedApp] = useState<string>("");
