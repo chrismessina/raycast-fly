@@ -142,6 +142,55 @@ function AppListDetail({ app }: { app: Application }) {
   );
 }
 
+function appDetailsAsText(app: Application): string {
+  const lines = [
+    `# ${app.name}`,
+    "",
+    `- **State:** ${app.state.toLowerCase()}`,
+    `- **Organization:** ${app.organization?.name ?? "—"}`,
+    ...(app.hostname ? [`- **Hostname:** https://${app.hostname}`] : []),
+    `- **Machines:** ${app.machines?.nodes?.length ?? 0}`,
+    `- **Machine Size:** ${app.vmSize.name}@${app.vmSize.memoryGb < 1 ? app.vmSize.memoryMb + "MB" : app.vmSize.memoryGb + "GB"}`,
+    `- **Volumes:** ${app.volumes?.nodes?.length ?? 0}`,
+    `- **Regions:** ${app.regions?.map((r) => r.code).join(", ") ?? "—"}`,
+    `- **Public IPs:** ${app.ipAddresses?.nodes?.map((ip) => ip.address).join(", ") ?? "—"}`,
+    `- **Certificates:** ${app.certificates?.nodes?.length ?? 0}`,
+  ];
+  if (app.currentRelease) {
+    lines.push("", "## Current Release", "");
+    lines.push(`- **Date:** ${app.currentRelease.createdAt.replace("T", " ").replace("Z", " UTC")}`);
+    lines.push(`- **Status:** ${app.currentRelease.status}`);
+    lines.push(`- **Image:** ${app.currentRelease.imageRef}`);
+  }
+  return lines.join("\n");
+}
+
+function appDetailsAsJson(app: Application): string {
+  return JSON.stringify(
+    {
+      name: app.name,
+      state: app.state,
+      organization: app.organization?.name ?? null,
+      hostname: app.hostname ?? null,
+      machines: app.machines?.nodes?.length ?? 0,
+      vmSize: `${app.vmSize.name}@${app.vmSize.memoryGb < 1 ? app.vmSize.memoryMb + "MB" : app.vmSize.memoryGb + "GB"}`,
+      volumes: app.volumes?.nodes?.length ?? 0,
+      regions: app.regions?.map((r) => r.code) ?? [],
+      publicIPs: app.ipAddresses?.nodes?.map((ip) => ip.address) ?? [],
+      certificates: app.certificates?.nodes?.length ?? 0,
+      currentRelease: app.currentRelease
+        ? {
+            date: app.currentRelease.createdAt,
+            status: app.currentRelease.status,
+            image: app.currentRelease.imageRef,
+          }
+        : null,
+    },
+    null,
+    2,
+  );
+}
+
 function AppListActions({ app, revalidate }: { app: Application; revalidate: () => void }) {
   const ips = app.ipAddresses?.nodes?.map((ip) => ip.address) ?? [];
 
@@ -172,6 +221,9 @@ function AppListActions({ app, revalidate }: { app: Application; revalidate: () 
       {app.currentRelease ? (
         <Action.CopyToClipboard title="Copy Release Image" content={app.currentRelease.imageRef} />
       ) : null}
+
+      <Action.CopyToClipboard title="Copy App Details as Text" content={appDetailsAsText(app)} icon={Icon.Document} />
+      <Action.CopyToClipboard title="Copy App Details as JSON" content={appDetailsAsJson(app)} icon={Icon.Code} />
 
       <Action
         title="Refresh"

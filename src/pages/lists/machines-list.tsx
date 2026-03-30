@@ -6,7 +6,6 @@ import type { Machine } from "../../api/types";
 import { getMachineStateIcon } from "../../utils/icons";
 import { timeAgo } from "../../utils/time";
 import { logger } from "../../utils/logger";
-import { MachineDetail } from "../details/machine-detail";
 
 interface Props {
   isLoading: boolean;
@@ -74,6 +73,64 @@ export function MachinesList({ isLoading: parentLoading }: Props) {
   );
 }
 
+function machineDetailsAsText(machine: Machine, appName: string): string {
+  const lines = [
+    `# Machine ${machine.id}`,
+    "",
+    `- **App:** ${appName}`,
+    `- **State:** ${machine.state}`,
+    `- **Region:** ${machine.region}`,
+    `- **Image:** ${machine.config.image}`,
+    `- **CPU:** ${machine.config.guest.cpu_kind} x${machine.config.guest.cpus}`,
+    `- **Memory:** ${machine.config.guest.memory_mb} MB`,
+    `- **Created:** ${timeAgo(machine.created_at)}`,
+  ];
+  if (machine.config.services?.length) {
+    lines.push("", "## Services", "");
+    for (const svc of machine.config.services) {
+      lines.push(
+        `- Port ${svc.internal_port} (${svc.protocol}) → ${svc.ports.map((p) => `${p.port} [${p.handlers.join(", ")}]`).join(", ")}`,
+      );
+    }
+  }
+  if (machine.config.mounts?.length) {
+    lines.push("", "## Mounts", "");
+    for (const mount of machine.config.mounts) {
+      lines.push(`- ${mount.volume || mount.name} → ${mount.path}${mount.size_gb ? ` (${mount.size_gb} GB)` : ""}`);
+    }
+  }
+  return lines.join("\n");
+}
+
+function machineDetailsAsJson(machine: Machine, appName: string): string {
+  return JSON.stringify(
+    {
+      id: machine.id,
+      app: appName,
+      state: machine.state,
+      region: machine.region,
+      image: machine.config.image,
+      cpu: `${machine.config.guest.cpu_kind} x${machine.config.guest.cpus}`,
+      memoryMb: machine.config.guest.memory_mb,
+      createdAt: machine.created_at,
+      services:
+        machine.config.services?.map((svc) => ({
+          internalPort: svc.internal_port,
+          protocol: svc.protocol,
+          ports: svc.ports.map((p) => ({ port: p.port, handlers: p.handlers })),
+        })) ?? [],
+      mounts:
+        machine.config.mounts?.map((m) => ({
+          volume: m.volume || m.name,
+          path: m.path,
+          sizeGb: m.size_gb,
+        })) ?? [],
+    },
+    null,
+    2,
+  );
+}
+
 function MachineListItem({ machine, appName, reload }: { machine: Machine; appName: string; reload: () => void }) {
   const icon = getMachineStateIcon(machine.state);
   const cpuSpec = `${machine.config.guest.cpu_kind} x${machine.config.guest.cpus}`;
@@ -115,12 +172,6 @@ function MachineListItem({ machine, appName, reload }: { machine: Machine; appNa
       }
       actions={
         <ActionPanel title={machine.id}>
-          <Action.Push
-            title="View Machine Details"
-            icon={Icon.Eye}
-            target={<MachineDetail appName={appName} machineId={machine.id} />}
-          />
-
           {machine.state === "stopped" && (
             <Action
               title="Start Machine"
@@ -196,6 +247,16 @@ function MachineListItem({ machine, appName, reload }: { machine: Machine; appNa
             title="Copy Machine ID"
             content={machine.id}
             shortcut={Keyboard.Shortcut.Common.Copy}
+          />
+          <Action.CopyToClipboard
+            title="Copy Machine Details as Text"
+            content={machineDetailsAsText(machine, appName)}
+            icon={Icon.Document}
+          />
+          <Action.CopyToClipboard
+            title="Copy Machine Details as JSON"
+            content={machineDetailsAsJson(machine, appName)}
+            icon={Icon.Code}
           />
           <Action
             title="Refresh"

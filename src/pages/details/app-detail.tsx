@@ -5,7 +5,6 @@ import type { Application, MachineSummary, Secret } from "../../api/types";
 import { getMachineStateIcon } from "../../utils/icons";
 import { timeAgo } from "../../utils/time";
 import { logger } from "../../utils/logger";
-import { MachineDetail } from "./machine-detail";
 
 export function AppDetail({ appName }: { appName: string }) {
   const { data, isLoading, revalidate } = useAppDetail(appName);
@@ -106,12 +105,6 @@ function MachineItem({
       accessories={[{ text: machine.state }]}
       actions={
         <ActionPanel title={machine.id}>
-          <Action.Push
-            title="View Machine Details"
-            icon={Icon.Eye}
-            target={<MachineDetail appName={appName} machineId={machine.id} />}
-          />
-
           {machine.state === "stopped" && (
             <Action
               title="Start Machine"
