@@ -9,13 +9,13 @@ type Input = {
 
 export default async function (input: Input) {
   const apps = await fetchApplications();
-  const filtered = input.orgName ? apps.filter((a) => a.organization.name === input.orgName) : apps;
+  const filtered = input.orgName ? apps.filter((a) => a.organization?.name ?? "" === input.orgName) : apps;
 
   return filtered.map((a) => ({
     name: a.name,
     state: a.state,
     hostname: a.hostname,
-    organization: a.organization.name,
+    organization: a.organization?.name ?? "",
     machineCount: a.machines?.nodes?.length ?? 0,
     regions: a.regions?.map((r) => r.code) ?? [],
   }));

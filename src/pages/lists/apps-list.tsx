@@ -20,7 +20,7 @@ export function AppsList({ isLoading: parentLoading }: Props) {
   const loading = parentLoading || isLoading;
 
   // Build org list for filter
-  const orgs = [...new Set(apps.map((a) => a.organization.name))];
+  const orgs = [...new Set(apps.map((a) => a.organization?.name).filter(Boolean))];
 
   return (
     <List
@@ -54,7 +54,7 @@ function AppListItem({ app, revalidate }: { app: Application; revalidate: () => 
   return (
     <List.Item
       title={app.name}
-      subtitle={app.organization.name}
+      subtitle={app.organization?.name ?? ""}
       icon={icon}
       accessories={[
         ...(regions ? [{ text: regions }] : []),
@@ -79,7 +79,7 @@ function AppListDetail({ app }: { app: Application }) {
             <List.Item.Detail.Metadata.TagList.Item text={app.state.toLowerCase()} color={uniqolor(app.state).color} />
           </List.Item.Detail.Metadata.TagList>
 
-          <List.Item.Detail.Metadata.Label title="Organization" text={app.organization.name} />
+          <List.Item.Detail.Metadata.Label title="Organization" text={app.organization?.name ?? ""} />
 
           {hostname && <List.Item.Detail.Metadata.Link title="Hostname" text={hostname} target={hostname} />}
 
