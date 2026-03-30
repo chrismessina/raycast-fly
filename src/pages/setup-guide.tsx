@@ -6,10 +6,10 @@ import {
   Icon,
   LaunchType,
   Toast,
+  environment,
   launchCommand,
   open,
   openExtensionPreferences,
-  popToRoot,
   showToast,
 } from "@raycast/api";
 import { findFlyBinary, isFlyAuthenticated } from "../api/paths";
@@ -66,7 +66,11 @@ Found \`flyctl\` at \`${binaryPath}\` and it's authenticated.
                   title: "Token saved",
                   message: "Connecting to Fly.io...",
                 });
-                await popToRoot();
+                // Re-launch this command so it picks up the new token
+                await launchCommand({
+                  name: environment.commandName,
+                  type: LaunchType.UserInitiated,
+                });
               } catch (error) {
                 logger.error("Token generation failed", error);
                 const errorMessage = error instanceof Error ? error.message : "Unknown error";
