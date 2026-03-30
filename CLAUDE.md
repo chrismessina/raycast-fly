@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Raycast extension for viewing and managing Fly.io applications. Uses Fly.io's GraphQL API for reading app data and the Machines REST API for actions like restarting machines. Authentication is via a Fly.io token stored in Raycast extension preferences.
+Raycast extension for viewing and managing Fly.io applications and machines. Two top-level commands (Search Apps, Search Machines) with push-to detail views. Uses Fly.io's GraphQL API for reads and the Machines REST API for lifecycle operations. Eight AI tools for Raycast AI integration. Authentication via Fly.io token stored in extension preferences, with inline onboarding flow.
 
 ## Commands
 
@@ -17,13 +17,39 @@ npm run fix-lint  # Auto-fix lint issues
 
 ## Architecture
 
-Two source files in `src/`:
+### API Layer (`src/api/`)
+- **`types.ts`** — All Fly.io type definitions (Application, Machine, Volume, Secret, etc.)
+- **`graphql.ts`** — GraphQL client against `api.fly.io/graphql`. Hook-based (`useApplications`, `useAppDetail`) for views, standalone async (`fetchApplications`, `fetchSecrets`) for AI tools. Also exports `isAuthenticationError()`.
+- **`machines.ts`** — REST client for `api.machines.dev/v1/`. Functions: `listMachines`, `getMachine`, `startMachine`, `stopMachine`, `restartMachine`, `destroyMachine`, `listVolumes`. Uses `node-fetch`.
+- **`paths.ts`** — Fly CLI binary detection: user preference → `which fly` → common paths.
 
-- **`fly.ts`** — API layer. `useGraphQL()` wraps `useFetch` from `@raycast/utils` for GraphQL queries against `api.fly.io/graphql`. `restartMachine()` uses `node-fetch` for REST calls to `api.machines.dev`. Exports the `Application` type, `useApplications()` hook, `restartMachine()`, and `isAuthenticationError()`.
-- **`index.tsx`** — Single Raycast command ("View Fly.io Applications"). Renders a `List` with detail panel showing app metadata (state, org, hostname, machines, regions, volumes, release info). Actions include opening dashboard/monitoring/metrics URLs, copying hostnames/IPs, and restarting machines.
+### Utilities (`src/utils/`)
+- **`logger.ts`** — Logger singleton via `@chrismessina/raycast-logger` with `[fly]` prefix.
+- **`icons.ts`** — State-to-icon/color mappings for apps (DEPLOYED/SUSPENDED/DESTROYED) and machines (started/stopped/created/destroyed).
+- **`time.ts`** — `timeAgo()` relative time formatting.
+- **`cli.ts`** — `generateToken()` and `installFlyMcp()` via flyctl CLI.
+
+### Commands (`src/`)
+- **`search-apps.tsx`** — Main command, wraps `AppsList` in `WithValidToken`.
+- **`search-machines.tsx`** — Wraps `MachinesList` in `WithValidToken`.
+
+### Pages (`src/pages/`)
+- **`with-valid-token.tsx`** — HOC that validates auth token, shows `SetupGuide` on failure.
+- **`setup-guide.tsx`** — Inline onboarding: CLI detection → three states (authenticated, not-authenticated, not-found).
+- **`lists/apps-list.tsx`** — Apps list with detail panel, org filter, all actions.
+- **`lists/machines-list.tsx`** — Machines list with detail panel, app filter, lifecycle actions.
+- **`details/app-detail.tsx`** — App drill-in: machines, volumes, secrets, IPs, releases.
+- **`details/machine-detail.tsx`** — Machine drill-in: overview, resources, services, mounts, checks.
+
+### AI Tools (`src/tools/`)
+Read tools: `get-apps`, `get-machines`, `get-volumes`, `get-secrets`. Write tools with confirmation: `restart-machine`, `start-machine`, `stop-machine`, `destroy-machine`.
 
 ## Key Patterns
 
-- Uses `@raycast/api` components (`List`, `Detail`, `ActionPanel`, `Action`) and `@raycast/utils` hooks (`useFetch`)
+- `WithValidToken` HOC wraps all commands — validates token via lightweight GraphQL query
+- Actions use `Keyboard.Shortcut.Common` mappings consistently
+- Destructive actions use `Action.Style.Destructive`
+- `Action.Push` for drill-in navigation between views
+- AI tools: typed `Input`, default async export, `confirmation` export (async) for destructive tools
+- `uniqolor` generates deterministic colors for status/region tags
 - Auth token accessed via `getPreferenceValues()` — defined in `package.json` under `preferences`
-- `uniqolor` generates deterministic colors from strings for status/region tags

@@ -16,5 +16,5 @@
 - [x] **Task 12:** AI Tools — Read (get-apps, get-machines, get-volumes, get-secrets)
 - [x] **Task 13:** AI Tools — Write (restart, start, stop, destroy machine)
 - [x] **Task 14:** Package.json and AI Evals
-- [ ] **Task 15:** Build Verification and Fixes
+- [x] **Task 15:** Build Verification and Fixes
 - [ ] **Task 16:** Documentation (README, CHANGELOG, CLAUDE.md)
