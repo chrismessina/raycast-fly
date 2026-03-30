@@ -5,7 +5,7 @@ export function generateToken(binaryPath: string): string {
   const cliLogger = logger.child("cli");
   cliLogger.info("Generating Fly.io API token...");
 
-  const token = execSync(`"${binaryPath}" tokens create -x 999999h`, {
+  const token = execSync(`"${binaryPath}" tokens create org`, {
     encoding: "utf-8",
     timeout: 15000,
     env: { ...process.env, FLY_NO_UPDATE_CHECK: "1" },

@@ -67,10 +67,17 @@ Found \`flyctl\` at \`${binaryPath}\` and it's authenticated.
                 openExtensionPreferences();
               } catch (error) {
                 logger.error("Token generation failed", error);
+                const errorMessage = error instanceof Error ? error.message : "Unknown error";
                 await showToast({
                   style: Toast.Style.Failure,
                   title: "Failed to generate token",
-                  message: error instanceof Error ? error.message : "Unknown error",
+                  message: errorMessage,
+                  primaryAction: {
+                    title: "Copy Error",
+                    onAction: async () => {
+                      await Clipboard.copy(errorMessage);
+                    },
+                  },
                 });
               }
             }}
