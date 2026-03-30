@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Icon, Keyboard, List, Toast, showToast } from "@raycast/api";
+import { Action, ActionPanel, Alert, Icon, Keyboard, List, Toast, confirmAlert, showToast } from "@raycast/api";
 import { useState } from "react";
 import uniqolor from "uniqolor";
 import { useApplications } from "../../api/graphql";
@@ -233,6 +233,17 @@ function AppListActions({ app, revalidate }: { app: Application; revalidate: () 
             style={Action.Style.Destructive}
             onAction={async () => {
               const machines = app.machines?.nodes ?? [];
+              const confirmed = await confirmAlert({
+                title: "Restart Machines",
+                message: `You are about to restart ${machines.length} machine(s) for ${app.name}. Are you sure?`,
+                icon: Icon.RotateClockwise,
+                primaryAction: {
+                  title: "Restart",
+                  style: Alert.ActionStyle.Destructive,
+                },
+              });
+              if (!confirmed) return;
+
               const toast = await showToast({
                 title: app.name,
                 message: `Restarting ${machines.length} machine(s)...`,
