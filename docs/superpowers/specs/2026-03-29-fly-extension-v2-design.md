@@ -46,6 +46,7 @@ src/
     cli.ts                      # exec flyctl commands, token generation
     icons.ts                    # State -> icon/color mappings
     time.ts                     # Relative time formatting
+    logger.ts                   # Logger singleton via @chrismessina/raycast-logger
 
 # Evals
 ai.yaml
@@ -108,8 +109,33 @@ Priority order:
   "description": "Custom path to the fly binary (leave empty for auto-detection)",
   "placeholder": "Auto-detect",
   "required": false
+},
+{
+  "name": "verboseLogging",
+  "type": "checkbox",
+  "title": "Verbose Logging",
+  "description": "Enable detailed logging for debugging",
+  "default": false,
+  "label": "Enable verbose logging",
+  "required": false
 }
 ```
+
+## Logging
+
+Uses `@chrismessina/raycast-logger` for structured, preference-driven logging with automatic redaction of sensitive data (auth tokens, API keys).
+
+**Setup:** Singleton logger in `utils/logger.ts`, imported throughout the extension.
+
+**Usage conventions:**
+- `logger.error()` / `logger.warn()` — always visible, for failures and important warnings
+- `logger.info()` — always visible, for key lifecycle events (token validated, machine restarted)
+- `logger.log()` / `logger.debug()` — verbose-only, for API calls, response data, CLI detection steps
+- `logger.step()` — for onboarding flow progress (detecting CLI, validating token, etc.)
+- `logger.time()` — for measuring API call duration
+- `logger.child("api")` / `logger.child("cli")` — scoped loggers for API layer and CLI operations
+
+Auth tokens are automatically redacted in log output.
 
 ## Commands
 
@@ -122,14 +148,17 @@ Priority order:
 - Detail panel metadata: state, org, hostname, machine count, machine size, volumes count, regions, IP count, certificates count, autoscaling config (if enabled), current release (date, status, image)
 - SearchBarAccessory: filter by organization
 
-**Actions:**
-- `Action.Push` to App Detail
-- Open Dashboard / Monitoring / Metrics / Logs (browser)
-- Open Hostname
-- Copy Hostname / IPs / Release Image
-- Restart Application (destructive)
-- Destroy Application (destructive)
-- Install Fly MCP for Claude (runs `fly mcp add`)
+**Actions (with `Keyboard.Shortcut.Common` mappings):**
+- `Action.Push` to App Detail — primary action (Enter)
+- Open Dashboard — `Keyboard.Shortcut.Common.Open` (Cmd+O)
+- Open Monitoring — `Keyboard.Shortcut.Common.OpenWith` (Cmd+Shift+O)
+- Open Hostname — secondary browser action
+- Copy Hostname — `Keyboard.Shortcut.Common.Copy` (Cmd+Shift+C)
+- Copy IPs / Release Image — `Keyboard.Shortcut.Common.CopyPath` (Cmd+Shift+,)
+- Refresh — `Keyboard.Shortcut.Common.Refresh` (Cmd+R)
+- Restart Application (destructive) — custom shortcut
+- Destroy Application (destructive) — `Keyboard.Shortcut.Common.Remove` (Ctrl+X)
+- Install Fly MCP for Claude — no shortcut (utility action)
 
 ### Search Machines
 
@@ -140,12 +169,13 @@ Priority order:
 - Detail panel metadata: full machine config, image, volumes, services
 - SearchBarAccessory: filter by app name
 
-**Actions:**
-- `Action.Push` to Machine Detail
-- Start / Stop / Restart (state-aware visibility)
-- Destroy (destructive)
-- Open app dashboard
-- Copy machine ID
+**Actions (with `Keyboard.Shortcut.Common` mappings):**
+- `Action.Push` to Machine Detail — primary action (Enter)
+- Start / Stop / Restart — state-aware visibility, custom shortcuts
+- Destroy (destructive) — `Keyboard.Shortcut.Common.Remove` (Ctrl+X)
+- Open app dashboard — `Keyboard.Shortcut.Common.Open` (Cmd+O)
+- Copy machine ID — `Keyboard.Shortcut.Common.Copy` (Cmd+Shift+C)
+- Refresh — `Keyboard.Shortcut.Common.Refresh` (Cmd+R)
 
 ### App Detail (push-to from Search Apps)
 
@@ -167,7 +197,30 @@ Priority order:
 - **Mounts section:** volume name, path, size
 - **Checks section:** name, type, interval, port (if configured)
 
-**Actions:** Start / Stop / Restart / Destroy, Open Dashboard, Copy ID
+**Actions (with `Keyboard.Shortcut.Common` mappings):**
+- Start / Stop / Restart — state-aware visibility, custom shortcuts
+- Destroy (destructive) — `Keyboard.Shortcut.Common.Remove` (Ctrl+X)
+- Open Dashboard — `Keyboard.Shortcut.Common.Open` (Cmd+O)
+- Copy ID — `Keyboard.Shortcut.Common.Copy` (Cmd+Shift+C)
+- Refresh — `Keyboard.Shortcut.Common.Refresh` (Cmd+R)
+
+## Keyboard Shortcuts
+
+All actions use `Keyboard.Shortcut.Common` where a semantic match exists. This ensures consistency with other Raycast extensions and preserves user muscle memory.
+
+| Action | Shortcut | Common Name |
+|--------|----------|-------------|
+| View detail (push) | Enter | Primary action |
+| Open in browser | Cmd+O | `Common.Open` |
+| Open secondary URL | Cmd+Shift+O | `Common.OpenWith` |
+| Copy primary value | Cmd+Shift+C | `Common.Copy` |
+| Copy secondary value | Cmd+Shift+, | `Common.CopyPath` |
+| Refresh list | Cmd+R | `Common.Refresh` |
+| Delete/Destroy | Ctrl+X | `Common.Remove` |
+| Edit/Rename | Cmd+E | `Common.Edit` |
+| Create new | Cmd+N | `Common.New` |
+
+Destructive actions (restart, destroy) use `Action.Style.Destructive` and require the action to be visually distinct. Destroy uses `Common.Remove`; restart uses a custom shortcut to avoid accidental triggers.
 
 ## State Icons
 
@@ -239,6 +292,10 @@ Test scenarios:
 - Requires flyctl to be installed and authenticated
 
 Complex operations (create app, deploy, configure networking) are best handled via the Fly MCP in a full AI client. The README notes this.
+
+## Dependencies (new)
+
+- `@chrismessina/raycast-logger` — structured logging with automatic sensitive data redaction
 
 ## API Layer
 
