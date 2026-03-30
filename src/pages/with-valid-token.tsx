@@ -11,25 +11,31 @@ interface Props {
 
 export function WithValidToken({ children }: Props) {
   const [tokenState, setTokenState] = useState<"loading" | "missing" | "ready">("loading");
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    setTokenState("loading");
     resolveAndCacheToken().then((token) => {
       setTokenState(token ? "ready" : "missing");
     });
-  }, []);
+  }, [attempt]);
+
+  function onTokenSaved() {
+    setAttempt((a) => a + 1);
+  }
 
   if (tokenState === "loading") {
     return <List isLoading={true} />;
   }
 
   if (tokenState === "missing") {
-    return <SetupGuide />;
+    return <SetupGuide onTokenSaved={onTokenSaved} />;
   }
 
-  return <TokenValidator>{children}</TokenValidator>;
+  return <TokenValidator onTokenSaved={onTokenSaved}>{children}</TokenValidator>;
 }
 
-function TokenValidator({ children }: Props) {
+function TokenValidator({ children, onTokenSaved }: Props & { onTokenSaved: () => void }) {
   const { data, isLoading } = useApplications();
 
   if (isLoading) {
@@ -38,7 +44,7 @@ function TokenValidator({ children }: Props) {
 
   if (isAuthenticationError(data)) {
     logger.warn("Authentication failed, showing setup guide");
-    return <SetupGuide />;
+    return <SetupGuide onTokenSaved={onTokenSaved} />;
   }
 
   return <>{children({ isLoading })}</>;

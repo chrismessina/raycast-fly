@@ -6,7 +6,6 @@ import {
   Icon,
   LaunchType,
   Toast,
-  environment,
   launchCommand,
   open,
   openExtensionPreferences,
@@ -26,12 +25,16 @@ function detectCliState(): { state: CliState; binaryPath: string | null } {
   return { state: "authenticated", binaryPath };
 }
 
-export function SetupGuide() {
+interface SetupGuideProps {
+  onTokenSaved?: () => void;
+}
+
+export function SetupGuide({ onTokenSaved }: SetupGuideProps) {
   const { state, binaryPath } = detectCliState();
   logger.step("setup", `CLI state is "${state}"`);
 
   if (state === "authenticated" && binaryPath) {
-    return <AuthenticatedGuide binaryPath={binaryPath} />;
+    return <AuthenticatedGuide binaryPath={binaryPath} onTokenSaved={onTokenSaved} />;
   }
 
   if (state === "not-authenticated" && binaryPath) {
@@ -41,7 +44,7 @@ export function SetupGuide() {
   return <NotFoundGuide />;
 }
 
-function AuthenticatedGuide({ binaryPath }: { binaryPath: string }) {
+function AuthenticatedGuide({ binaryPath, onTokenSaved }: { binaryPath: string; onTokenSaved?: () => void }) {
   const markdown = `# Fly.io Setup
 
 Found \`flyctl\` at \`${binaryPath}\` and it's authenticated.
@@ -66,11 +69,7 @@ Found \`flyctl\` at \`${binaryPath}\` and it's authenticated.
                   title: "Token saved",
                   message: "Connecting to Fly.io...",
                 });
-                // Re-launch this command so it picks up the new token
-                await launchCommand({
-                  name: environment.commandName,
-                  type: LaunchType.UserInitiated,
-                });
+                onTokenSaved?.();
               } catch (error) {
                 logger.error("Token generation failed", error);
                 const errorMessage = error instanceof Error ? error.message : "Unknown error";
