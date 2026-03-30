@@ -5,6 +5,7 @@ import type { Application, MachineSummary, Secret } from "../../api/types";
 import { getMachineStateIcon } from "../../utils/icons";
 import { timeAgo } from "../../utils/time";
 import { logger } from "../../utils/logger";
+import { showErrorToast } from "../../utils/toast";
 
 export function AppDetail({ appName }: { appName: string }) {
   const { data, isLoading, revalidate } = useAppDetail(appName);
@@ -116,7 +117,7 @@ function MachineItem({
                   revalidate();
                 } catch (error) {
                   logger.error("Start failed", error);
-                  await showToast({ style: Toast.Style.Failure, title: "Failed to start machine" });
+                  await showErrorToast("Failed to start machine", error);
                 }
               }}
             />
@@ -133,7 +134,7 @@ function MachineItem({
                   revalidate();
                 } catch (error) {
                   logger.error("Stop failed", error);
-                  await showToast({ style: Toast.Style.Failure, title: "Failed to stop machine" });
+                  await showErrorToast("Failed to stop machine", error);
                 }
               }}
             />
@@ -150,7 +151,7 @@ function MachineItem({
                   revalidate();
                 } catch (error) {
                   logger.error("Restart failed", error);
-                  await showToast({ style: Toast.Style.Failure, title: "Failed to restart machine" });
+                  await showErrorToast("Failed to restart machine", error);
                 }
               }}
             />
@@ -168,7 +169,7 @@ function MachineItem({
                 revalidate();
               } catch (error) {
                 logger.error("Destroy failed", error);
-                await showToast({ style: Toast.Style.Failure, title: "Failed to destroy machine" });
+                await showErrorToast("Failed to destroy machine", error);
               }
             }}
           />

@@ -42,15 +42,3 @@ export function generateToken(binaryPath: string): string {
   cliLogger.info("Token generated successfully");
   return token;
 }
-
-export function installFlyMcp(binaryPath: string): void {
-  cliLogger.info("Installing Fly MCP for Claude...");
-
-  execSync(`"${binaryPath}" mcp add`, {
-    encoding: "utf-8",
-    timeout: 30000,
-    env: FLY_ENV,
-  });
-
-  cliLogger.info("Fly MCP installed successfully");
-}

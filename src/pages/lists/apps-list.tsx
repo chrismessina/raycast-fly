@@ -7,9 +7,9 @@ import type { Application } from "../../api/types";
 import { getAppStateIcon } from "../../utils/icons";
 import { formatISODate, formatVmSize, timeAgo } from "../../utils/time";
 import { logger } from "../../utils/logger";
+import { showErrorToast } from "../../utils/toast";
 import { AppDetail } from "../details/app-detail";
-import { findFlyBinary } from "../../api/paths";
-import { installFlyMcp } from "../../utils/cli";
+import { McpGuide } from "../mcp-guide";
 
 interface Props {
   isLoading: boolean;
@@ -245,8 +245,7 @@ function AppListActions({ app, revalidate }: { app: Application; revalidate: () 
                 revalidate();
               } catch (error) {
                 logger.error("Restart failed", error);
-                toast.message = "Failed to restart a machine";
-                toast.style = Toast.Style.Failure;
+                await showErrorToast("Failed to restart application", error);
               }
             }}
           />
@@ -254,31 +253,7 @@ function AppListActions({ app, revalidate }: { app: Application; revalidate: () 
       </ActionPanel.Section>
 
       <ActionPanel.Section title="Utilities">
-        <Action
-          title="Install Fly MCP for Claude"
-          icon={Icon.Plug}
-          onAction={async () => {
-            const binaryPath = findFlyBinary();
-            if (!binaryPath) {
-              await showToast({
-                style: Toast.Style.Failure,
-                title: "flyctl not found",
-                message: "Install the Fly CLI first",
-              });
-              return;
-            }
-            try {
-              installFlyMcp(binaryPath);
-              await showToast({ style: Toast.Style.Success, title: "Fly MCP installed for Claude" });
-            } catch (error) {
-              await showToast({
-                style: Toast.Style.Failure,
-                title: "Failed to install MCP",
-                message: error instanceof Error ? error.message : "Unknown error",
-              });
-            }
-          }}
-        />
+        <Action.Push title="Set up Fly MCP Server" icon={Icon.Plug} target={<McpGuide />} />
       </ActionPanel.Section>
     </ActionPanel>
   );

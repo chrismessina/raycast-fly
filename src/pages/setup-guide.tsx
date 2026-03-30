@@ -1,7 +1,6 @@
 import {
   Action,
   ActionPanel,
-  Clipboard,
   Detail,
   Icon,
   LaunchType,
@@ -17,6 +16,7 @@ import { findFlyBinary, isFlyAuthenticated } from "../api/paths";
 import { generateToken } from "../utils/cli";
 import { saveGeneratedToken } from "../utils/auth";
 import { logger } from "../utils/logger";
+import { showErrorToast } from "../utils/toast";
 
 type CliState = "loading" | "not-found" | "not-authenticated" | "authenticated";
 
@@ -86,18 +86,7 @@ Found \`flyctl\` at \`${binaryPath}\` and it's authenticated.
                 onTokenSaved?.();
               } catch (error) {
                 logger.error("Token generation failed", error);
-                const errorMessage = error instanceof Error ? error.message : "Unknown error";
-                await showToast({
-                  style: Toast.Style.Failure,
-                  title: "Failed to generate token",
-                  message: errorMessage,
-                  primaryAction: {
-                    title: "Copy Error",
-                    onAction: async () => {
-                      await Clipboard.copy(errorMessage);
-                    },
-                  },
-                });
+                await showErrorToast("Failed to generate token", error);
               }
             }}
           />
