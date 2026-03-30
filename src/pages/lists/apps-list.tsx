@@ -1,10 +1,11 @@
 import { Action, ActionPanel, Icon, Keyboard, List, Toast, showToast } from "@raycast/api";
+import { useState } from "react";
 import uniqolor from "uniqolor";
 import { useApplications } from "../../api/graphql";
 import { restartMachine } from "../../api/machines";
 import type { Application } from "../../api/types";
 import { getAppStateIcon } from "../../utils/icons";
-import { timeAgo } from "../../utils/time";
+import { formatISODate, formatVmSize, timeAgo } from "../../utils/time";
 import { logger } from "../../utils/logger";
 import { AppDetail } from "../details/app-detail";
 import { findFlyBinary } from "../../api/paths";
@@ -19,8 +20,9 @@ export function AppsList({ isLoading: parentLoading }: Props) {
   const apps = (data?.data?.apps?.nodes ?? []).filter(Boolean);
   const loading = parentLoading || isLoading;
 
-  // Build org list for filter
   const orgs = [...new Set(apps.map((a) => a.organization?.name ?? "").filter((n) => n !== ""))];
+  const [selectedOrg, setSelectedOrg] = useState("");
+  const filteredApps = selectedOrg ? apps.filter((a) => (a.organization?.name ?? "") === selectedOrg) : apps;
 
   return (
     <List
@@ -28,7 +30,7 @@ export function AppsList({ isLoading: parentLoading }: Props) {
       isLoading={loading}
       searchBarAccessory={
         orgs.length > 1 ? (
-          <List.Dropdown tooltip="Filter by Organization" onChange={() => {}}>
+          <List.Dropdown tooltip="Filter by Organization" value={selectedOrg} onChange={setSelectedOrg}>
             <List.Dropdown.Item title="All Organizations" value="" />
             {orgs.map((org) => (
               <List.Dropdown.Item key={org} title={org} value={org} />
@@ -38,7 +40,7 @@ export function AppsList({ isLoading: parentLoading }: Props) {
       }
     >
       <List.Section title="Applications">
-        {apps.map((app) => (
+        {filteredApps.map((app) => (
           <AppListItem key={app.name} app={app} revalidate={revalidate} />
         ))}
       </List.Section>
@@ -68,7 +70,6 @@ function AppListItem({ app, revalidate }: { app: Application; revalidate: () => 
 }
 
 function AppListDetail({ app }: { app: Application }) {
-  const isMb = app.vmSize.memoryGb < 1;
   const hostname = app.hostname ? `https://${app.hostname}` : undefined;
 
   return (
@@ -84,12 +85,7 @@ function AppListDetail({ app }: { app: Application }) {
           {hostname && <List.Item.Detail.Metadata.Link title="Hostname" text={hostname} target={hostname} />}
 
           <List.Item.Detail.Metadata.Label title="Machine Count" text={String(app.machines?.nodes?.length ?? 0)} />
-
-          <List.Item.Detail.Metadata.Label
-            title="Machine Size"
-            text={`${app.vmSize.name}@${isMb ? app.vmSize.memoryMb + "MB" : app.vmSize.memoryGb + "GB"}`}
-          />
-
+          <List.Item.Detail.Metadata.Label title="Machine Size" text={formatVmSize(app.vmSize)} />
           <List.Item.Detail.Metadata.Label title="Volumes" text={String(app.volumes?.nodes?.length ?? 0)} />
 
           {app.regions ? (
@@ -123,10 +119,7 @@ function AppListDetail({ app }: { app: Application }) {
             <>
               <List.Item.Detail.Metadata.Separator />
               <List.Item.Detail.Metadata.Label title="Current Release" />
-              <List.Item.Detail.Metadata.Label
-                title="Date"
-                text={app.currentRelease.createdAt.replace("T", " ").replace("Z", " UTC")}
-              />
+              <List.Item.Detail.Metadata.Label title="Date" text={formatISODate(app.currentRelease.createdAt)} />
               <List.Item.Detail.Metadata.TagList title="Status">
                 <List.Item.Detail.Metadata.TagList.Item
                   text={app.currentRelease.status}
@@ -150,15 +143,15 @@ function appDetailsAsText(app: Application): string {
     `- **Organization:** ${app.organization?.name ?? "—"}`,
     ...(app.hostname ? [`- **Hostname:** https://${app.hostname}`] : []),
     `- **Machines:** ${app.machines?.nodes?.length ?? 0}`,
-    `- **Machine Size:** ${app.vmSize.name}@${app.vmSize.memoryGb < 1 ? app.vmSize.memoryMb + "MB" : app.vmSize.memoryGb + "GB"}`,
+    `- **Machine Size:** ${formatVmSize(app.vmSize)}`,
     `- **Volumes:** ${app.volumes?.nodes?.length ?? 0}`,
-    `- **Regions:** ${app.regions?.map((r) => r.code).join(", ") ?? "—"}`,
-    `- **Public IPs:** ${app.ipAddresses?.nodes?.map((ip) => ip.address).join(", ") ?? "—"}`,
+    `- **Regions:** ${(app.regions?.map((r) => r.code) || []).join(", ") || "—"}`,
+    `- **Public IPs:** ${(app.ipAddresses?.nodes?.map((ip) => ip.address) || []).join(", ") || "—"}`,
     `- **Certificates:** ${app.certificates?.nodes?.length ?? 0}`,
   ];
   if (app.currentRelease) {
     lines.push("", "## Current Release", "");
-    lines.push(`- **Date:** ${app.currentRelease.createdAt.replace("T", " ").replace("Z", " UTC")}`);
+    lines.push(`- **Date:** ${formatISODate(app.currentRelease.createdAt)}`);
     lines.push(`- **Status:** ${app.currentRelease.status}`);
     lines.push(`- **Image:** ${app.currentRelease.imageRef}`);
   }
@@ -173,7 +166,7 @@ function appDetailsAsJson(app: Application): string {
       organization: app.organization?.name ?? null,
       hostname: app.hostname ?? null,
       machines: app.machines?.nodes?.length ?? 0,
-      vmSize: `${app.vmSize.name}@${app.vmSize.memoryGb < 1 ? app.vmSize.memoryMb + "MB" : app.vmSize.memoryGb + "GB"}`,
+      vmSize: formatVmSize(app.vmSize),
       volumes: app.volumes?.nodes?.length ?? 0,
       regions: app.regions?.map((r) => r.code) ?? [],
       publicIPs: app.ipAddresses?.nodes?.map((ip) => ip.address) ?? [],
@@ -232,60 +225,61 @@ function AppListActions({ app, revalidate }: { app: Application; revalidate: () 
         onAction={revalidate}
       />
 
-      {app.state === "DEPLOYED" && (app.machines?.nodes?.length ?? 0) > 0 ? (
-        <Action
-          title="Restart Application"
-          icon={Icon.RotateClockwise}
-          style={Action.Style.Destructive}
-          onAction={async () => {
-            const machines = app.machines?.nodes ?? [];
-            const toast = await showToast({
-              title: app.name,
-              message: "Preparing to restart...",
-              style: Toast.Style.Animated,
-            });
-            try {
-              for (let i = 0; i < machines.length; i++) {
-                toast.message = `Restarting machine ${i + 1}/${machines.length}`;
-                await restartMachine(app.name, machines[i].id);
+      <ActionPanel.Section title="Destructive">
+        {app.state === "DEPLOYED" && (app.machines?.nodes?.length ?? 0) > 0 ? (
+          <Action
+            title="Restart Application"
+            icon={Icon.RotateClockwise}
+            style={Action.Style.Destructive}
+            onAction={async () => {
+              const machines = app.machines?.nodes ?? [];
+              const toast = await showToast({
+                title: app.name,
+                message: `Restarting ${machines.length} machine(s)...`,
+                style: Toast.Style.Animated,
+              });
+              try {
+                await Promise.all(machines.map((m) => restartMachine(app.name, m.id)));
+                toast.message = "All machines restarted";
+                toast.style = Toast.Style.Success;
+                revalidate();
+              } catch (error) {
+                logger.error("Restart failed", error);
+                toast.message = "Failed to restart a machine";
+                toast.style = Toast.Style.Failure;
               }
-              toast.message = "All machines restarted";
-              toast.style = Toast.Style.Success;
-              revalidate();
+            }}
+          />
+        ) : null}
+      </ActionPanel.Section>
+
+      <ActionPanel.Section title="Utilities">
+        <Action
+          title="Install Fly MCP for Claude"
+          icon={Icon.Plug}
+          onAction={async () => {
+            const binaryPath = findFlyBinary();
+            if (!binaryPath) {
+              await showToast({
+                style: Toast.Style.Failure,
+                title: "flyctl not found",
+                message: "Install the Fly CLI first",
+              });
+              return;
+            }
+            try {
+              installFlyMcp(binaryPath);
+              await showToast({ style: Toast.Style.Success, title: "Fly MCP installed for Claude" });
             } catch (error) {
-              logger.error("Restart failed", error);
-              toast.message = "Failed to restart a machine";
-              toast.style = Toast.Style.Failure;
+              await showToast({
+                style: Toast.Style.Failure,
+                title: "Failed to install MCP",
+                message: error instanceof Error ? error.message : "Unknown error",
+              });
             }
           }}
         />
-      ) : null}
-
-      <Action
-        title="Install Fly MCP for Claude"
-        icon={Icon.Plug}
-        onAction={async () => {
-          const binaryPath = findFlyBinary();
-          if (!binaryPath) {
-            await showToast({
-              style: Toast.Style.Failure,
-              title: "flyctl not found",
-              message: "Install the Fly CLI first",
-            });
-            return;
-          }
-          try {
-            installFlyMcp(binaryPath);
-            await showToast({ style: Toast.Style.Success, title: "Fly MCP installed for Claude" });
-          } catch (error) {
-            await showToast({
-              style: Toast.Style.Failure,
-              title: "Failed to install MCP",
-              message: error instanceof Error ? error.message : "Unknown error",
-            });
-          }
-        }}
-      />
+      </ActionPanel.Section>
     </ActionPanel>
   );
 }

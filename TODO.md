@@ -17,4 +17,4 @@
 - [x] **Task 13:** AI Tools — Write (restart, start, stop, destroy machine)
 - [x] **Task 14:** Package.json and AI Evals
 - [x] **Task 15:** Build Verification and Fixes
-- [ ] **Task 16:** Documentation (README, CHANGELOG, CLAUDE.md)
+- [x] **Task 16:** Documentation (README, CHANGELOG, CLAUDE.md)

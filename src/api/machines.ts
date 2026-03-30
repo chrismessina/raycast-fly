@@ -4,6 +4,7 @@ import { logger } from "../utils/logger";
 import type { Machine, Volume } from "./types";
 
 const MACHINES_API = "https://api.machines.dev/v1";
+const apiLogger = logger.child("api");
 
 function headers(): Record<string, string> {
   const authToken = getAuthToken();
@@ -14,7 +15,6 @@ function headers(): Record<string, string> {
 }
 
 async function machinesRequest<T>(path: string, method = "GET"): Promise<T> {
-  const apiLogger = logger.child("api");
   apiLogger.debug(`${method} ${path}`);
 
   const response = await fetch(`${MACHINES_API}${path}`, {
@@ -28,7 +28,8 @@ async function machinesRequest<T>(path: string, method = "GET"): Promise<T> {
     throw new Error(`Machines API error: ${response.status} ${response.statusText}`);
   }
 
-  if (response.status === 200 && method === "GET") {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
     return (await response.json()) as T;
   }
 
@@ -65,10 +66,5 @@ export async function destroyMachine(appName: string, machineId: string, force =
 }
 
 export async function listVolumes(appName: string): Promise<Volume[]> {
-  const authToken = getAuthToken();
-  const response = await fetch(`${MACHINES_API}/apps/${appName}/volumes`, {
-    headers: { Authorization: `Bearer ${authToken}` },
-  });
-  if (!response.ok) throw new Error(`Failed to list volumes: ${response.status}`);
-  return (await response.json()) as Volume[];
+  return machinesRequest<Volume[]>(`/apps/${appName}/volumes`);
 }

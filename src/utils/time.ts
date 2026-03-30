@@ -13,3 +13,12 @@ export function timeAgo(date: string | number): string {
   const months = Math.floor(days / 30);
   return `${months}mo ago`;
 }
+
+export function formatISODate(date: string): string {
+  return date.replace("T", " ").replace("Z", " UTC");
+}
+
+export function formatVmSize(vmSize: { name: string; memoryMb: number; memoryGb: number }): string {
+  const mem = vmSize.memoryGb < 1 ? `${vmSize.memoryMb}MB` : `${vmSize.memoryGb}GB`;
+  return `${vmSize.name}@${mem}`;
+}

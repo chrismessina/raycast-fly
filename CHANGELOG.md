@@ -1,8 +1,9 @@
 # Changelog
 
-## 2.0.0
+## 2.0.0 - {PR_MERGE_DATE}
 
 ### Added
+
 - **Search Machines** command with detail panel and lifecycle actions (start/stop/restart/destroy)
 - **App Detail** view: machines, volumes, secrets, IP addresses, recent releases
 - **Machine Detail** view: overview, resources, services, mounts, health checks
@@ -17,12 +18,14 @@
 - Keyboard shortcuts using `Keyboard.Shortcut.Common` conventions
 
 ### Changed
+
 - Renamed "View Fly.io Applications" to "Search Apps"
 - Split API layer into GraphQL (`api/graphql.ts`) and REST (`api/machines.ts`) modules
 - Enhanced apps list with state icons, region tags, machine counts, and deploy timestamps
 - Auth errors now show onboarding guide instead of static error page
 
 ### Removed
+
 - Single-file `fly.ts` API (replaced by `api/` modules)
 - Single-file `index.tsx` command (replaced by `search-apps.tsx`)
 

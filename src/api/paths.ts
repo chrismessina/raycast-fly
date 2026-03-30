@@ -3,6 +3,8 @@ import { execSync } from "child_process";
 import { existsSync } from "fs";
 import { logger } from "../utils/logger";
 
+const cliLogger = logger.child("cli");
+
 const COMMON_PATHS = [
   "/opt/homebrew/bin/fly",
   "/usr/local/bin/fly",
@@ -13,9 +15,6 @@ const COMMON_PATHS = [
 ];
 
 export function findFlyBinary(): string | null {
-  const cliLogger = logger.child("cli");
-
-  // 1. User preference
   const { flyBinaryPath } = getPreferenceValues<{ flyBinaryPath?: string }>();
   if (flyBinaryPath && flyBinaryPath.trim()) {
     cliLogger.debug(`Using user-configured path: ${flyBinaryPath}`);
@@ -48,7 +47,6 @@ export function findFlyBinary(): string | null {
 }
 
 export function isFlyAuthenticated(binaryPath: string): boolean {
-  const cliLogger = logger.child("cli");
   try {
     execSync(`"${binaryPath}" auth whoami`, {
       encoding: "utf-8",

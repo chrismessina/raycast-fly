@@ -2,13 +2,9 @@ import { execSync } from "child_process";
 import { logger } from "./logger";
 
 const FLY_ENV = { ...process.env, FLY_NO_UPDATE_CHECK: "1" };
+const cliLogger = logger.child("cli");
 
-/**
- * Get the personal org slug from `fly orgs list --json`.
- * JSON output is { "slug": "name", ... }. Falls back to "personal".
- */
 function getPersonalOrgSlug(binaryPath: string): string {
-  const cliLogger = logger.child("cli");
   try {
     const output = execSync(`"${binaryPath}" orgs list --json`, {
       encoding: "utf-8",
@@ -32,7 +28,6 @@ function getPersonalOrgSlug(binaryPath: string): string {
 }
 
 export function generateToken(binaryPath: string): string {
-  const cliLogger = logger.child("cli");
   cliLogger.info("Generating Fly.io API token...");
 
   const orgSlug = getPersonalOrgSlug(binaryPath);
@@ -49,7 +44,6 @@ export function generateToken(binaryPath: string): string {
 }
 
 export function installFlyMcp(binaryPath: string): void {
-  const cliLogger = logger.child("cli");
   cliLogger.info("Installing Fly MCP for Claude...");
 
   execSync(`"${binaryPath}" mcp add`, {

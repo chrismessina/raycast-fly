@@ -1,5 +1,6 @@
 import { List } from "@raycast/api";
 import { useEffect, useState } from "react";
+import { GRAPHQL_URL } from "../api/graphql";
 import { resolveAndCacheToken } from "../utils/auth";
 import { SetupGuide } from "./setup-guide";
 import { logger } from "../utils/logger";
@@ -8,13 +9,9 @@ interface Props {
   children: (args: { isLoading: boolean }) => React.ReactNode;
 }
 
-/**
- * Validate the token with a lightweight GraphQL query using plain fetch
- * (not useFetch, which caches responses and won't re-fetch with a new token).
- */
 async function validateToken(token: string): Promise<boolean> {
   try {
-    const response = await fetch("https://api.fly.io/graphql", {
+    const response = await fetch(GRAPHQL_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,

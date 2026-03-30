@@ -5,39 +5,53 @@ import {
   Detail,
   Icon,
   LaunchType,
+  List,
   Toast,
   launchCommand,
   open,
   openExtensionPreferences,
   showToast,
 } from "@raycast/api";
+import { useEffect, useState } from "react";
 import { findFlyBinary, isFlyAuthenticated } from "../api/paths";
 import { generateToken } from "../utils/cli";
 import { saveGeneratedToken } from "../utils/auth";
 import { logger } from "../utils/logger";
 
-type CliState = "not-found" | "not-authenticated" | "authenticated";
-
-function detectCliState(): { state: CliState; binaryPath: string | null } {
-  const binaryPath = findFlyBinary();
-  if (!binaryPath) return { state: "not-found", binaryPath: null };
-  if (!isFlyAuthenticated(binaryPath)) return { state: "not-authenticated", binaryPath };
-  return { state: "authenticated", binaryPath };
-}
+type CliState = "loading" | "not-found" | "not-authenticated" | "authenticated";
 
 interface SetupGuideProps {
   onTokenSaved?: () => void;
 }
 
 export function SetupGuide({ onTokenSaved }: SetupGuideProps) {
-  const { state, binaryPath } = detectCliState();
-  logger.step("setup", `CLI state is "${state}"`);
+  const [cliState, setCliState] = useState<CliState>("loading");
+  const [binaryPath, setBinaryPath] = useState<string | null>(null);
 
-  if (state === "authenticated" && binaryPath) {
+  useEffect(() => {
+    const path = findFlyBinary();
+    if (!path) {
+      setCliState("not-found");
+      return;
+    }
+    setBinaryPath(path);
+    if (!isFlyAuthenticated(path)) {
+      setCliState("not-authenticated");
+      return;
+    }
+    setCliState("authenticated");
+    logger.step("setup", `CLI state is "authenticated"`);
+  }, []);
+
+  if (cliState === "loading") {
+    return <List isLoading={true} />;
+  }
+
+  if (cliState === "authenticated" && binaryPath) {
     return <AuthenticatedGuide binaryPath={binaryPath} onTokenSaved={onTokenSaved} />;
   }
 
-  if (state === "not-authenticated" && binaryPath) {
+  if (cliState === "not-authenticated") {
     return <NotAuthenticatedGuide />;
   }
 

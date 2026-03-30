@@ -3,7 +3,25 @@ import { getAuthToken } from "../utils/auth";
 import { logger } from "../utils/logger";
 import type { Application, ApplicationsResponse, AppDetailResponse, Secret } from "./types";
 
-const GRAPHQL_URL = "https://api.fly.io/graphql";
+export const GRAPHQL_URL = "https://api.fly.io/graphql";
+const apiLogger = logger.child("api");
+
+function authHeaders() {
+  const authToken = getAuthToken();
+  return {
+    Authorization: `Bearer ${authToken}`,
+    "Content-Type": "application/json",
+  };
+}
+
+async function graphqlFetch<T>(query: string, variables?: Record<string, string>): Promise<T> {
+  const response = await fetch(GRAPHQL_URL, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(variables ? { query, variables } : { query }),
+  });
+  return (await response.json()) as T;
+}
 
 function useGraphQL<T>(query: string) {
   const authToken = getAuthToken();
@@ -20,7 +38,6 @@ function useGraphQL<T>(query: string) {
 }
 
 export function useApplications() {
-  const apiLogger = logger.child("api");
   apiLogger.debug("Fetching applications list");
 
   return useGraphQL<ApplicationsResponse>(`
@@ -89,7 +106,6 @@ export function useApplications() {
 }
 
 export function useAppDetail(appName: string) {
-  const apiLogger = logger.child("api");
   apiLogger.debug(`Fetching detail for app: ${appName}`);
 
   return useGraphQL<AppDetailResponse>(`
@@ -174,54 +190,29 @@ export function isAuthenticationError(data: unknown): boolean {
   return false;
 }
 
-// Standalone fetch for AI tools (non-hook context)
 export async function fetchApplications(): Promise<Application[]> {
-  const authToken = getAuthToken();
-  const apiLogger = logger.child("api");
   apiLogger.debug("Fetching applications (standalone)");
 
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      query: `
-        query {
-          apps {
-            nodes {
-              id name state hostname createdAt
-              organization { name }
-              machines(active: true) { nodes { id state region } }
-              regions { code }
-            }
-          }
+  const json = await graphqlFetch<ApplicationsResponse>(`
+    query {
+      apps {
+        nodes {
+          id name state hostname createdAt
+          organization { name }
+          machines(active: true) { nodes { id state region } }
+          regions { code }
         }
-      `,
-    }),
-  });
-
-  const json = (await response.json()) as ApplicationsResponse;
+      }
+    }
+  `);
   return json.data.apps.nodes;
 }
 
 export async function fetchSecrets(appName: string): Promise<Secret[]> {
-  const authToken = getAuthToken();
-  const apiLogger = logger.child("api");
   apiLogger.debug(`Fetching secrets for app: ${appName}`);
 
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${authToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      query: `query { app(name: "${appName}") { secrets { name digest createdAt } } }`,
-    }),
-  });
-
-  const json = (await response.json()) as AppDetailResponse;
+  const json = await graphqlFetch<AppDetailResponse>(
+    `query { app(name: "${appName}") { secrets { name digest createdAt } } }`,
+  );
   return json.data.app.secrets ?? [];
 }

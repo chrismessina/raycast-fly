@@ -18,22 +18,26 @@ npm run fix-lint  # Auto-fix lint issues
 ## Architecture
 
 ### API Layer (`src/api/`)
+
 - **`types.ts`** — All Fly.io type definitions (Application, Machine, Volume, Secret, etc.)
 - **`graphql.ts`** — GraphQL client against `api.fly.io/graphql`. Hook-based (`useApplications`, `useAppDetail`) for views, standalone async (`fetchApplications`, `fetchSecrets`) for AI tools. Also exports `isAuthenticationError()`.
 - **`machines.ts`** — REST client for `api.machines.dev/v1/`. Functions: `listMachines`, `getMachine`, `startMachine`, `stopMachine`, `restartMachine`, `destroyMachine`, `listVolumes`. Uses `node-fetch`.
 - **`paths.ts`** — Fly CLI binary detection: user preference → `which fly` → common paths.
 
 ### Utilities (`src/utils/`)
+
 - **`logger.ts`** — Logger singleton via `@chrismessina/raycast-logger` with `[fly]` prefix.
 - **`icons.ts`** — State-to-icon/color mappings for apps (DEPLOYED/SUSPENDED/DESTROYED) and machines (started/stopped/created/destroyed).
 - **`time.ts`** — `timeAgo()` relative time formatting.
 - **`cli.ts`** — `generateToken()` and `installFlyMcp()` via flyctl CLI.
 
 ### Commands (`src/`)
+
 - **`search-apps.tsx`** — Main command, wraps `AppsList` in `WithValidToken`.
 - **`search-machines.tsx`** — Wraps `MachinesList` in `WithValidToken`.
 
 ### Pages (`src/pages/`)
+
 - **`with-valid-token.tsx`** — HOC that validates auth token, shows `SetupGuide` on failure.
 - **`setup-guide.tsx`** — Inline onboarding: CLI detection → three states (authenticated, not-authenticated, not-found).
 - **`lists/apps-list.tsx`** — Apps list with detail panel, org filter, all actions.
@@ -42,6 +46,7 @@ npm run fix-lint  # Auto-fix lint issues
 - **`details/machine-detail.tsx`** — Machine drill-in: overview, resources, services, mounts, checks.
 
 ### AI Tools (`src/tools/`)
+
 Read tools: `get-apps`, `get-machines`, `get-volumes`, `get-secrets`. Write tools with confirmation: `restart-machine`, `start-machine`, `stop-machine`, `destroy-machine`.
 
 ## Key Patterns
