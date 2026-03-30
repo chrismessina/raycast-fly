@@ -6,7 +6,7 @@ Redesign of the Fly.io Raycast extension with inline onboarding, expanded app/ma
 
 ## File Structure
 
-```
+```text
 src/
   # Commands (manifest entries)
   search-apps.tsx
@@ -57,6 +57,7 @@ ai.yaml
 ### `with-valid-token.tsx` (HOC)
 
 Wraps every command. On load:
+
 1. Checks if `authToken` preference is set
 2. If set, makes a lightweight GraphQL query to validate
 3. If missing or invalid, renders `<SetupGuide />` instead of children
@@ -66,28 +67,32 @@ Wraps every command. On load:
 Detects flyctl and branches:
 
 **CLI found + authenticated:**
+
 - Show confirmation: "Found flyctl at [path]. Generate API token and save to preferences?"
 - Action: "Generate Token" runs `fly tokens create`, saves to preferences
 - Action: "Set Token Manually" opens extension preferences
 
 **CLI found + NOT authenticated:**
+
 - Detail markdown explaining they need to sign in once
 - Action: "Copy Login Command" copies `fly auth login`
 - Action: "Open Terminal" launches Terminal.app
 - Action: "Set Token Manually" opens extension preferences
 
 **CLI not found:**
+
 - Detail markdown modeled on fly.io/docs/flyctl/install/:
   - "If you have Homebrew..." section
   - "If not, use the install script..." section
 - Action: "Install via Homebrew Extension" uses `launchCommand()` to open brew extension search for "flyctl". Catches error and falls back to opening Raycast Store page for the brew extension.
 - Action: "Copy Install Script" copies `curl -L https://fly.io/install.sh | sh`
-- Action: "Open Install Docs" opens https://fly.io/docs/flyctl/install/
+- Action: "Open Install Docs" opens <https://fly.io/docs/flyctl/install/>
 - Action: "Set Token Manually" opens extension preferences
 
 ### Binary detection (`paths.ts`)
 
 Priority order:
+
 1. User preference `flyBinaryPath` (if set)
 2. `which fly` via `execSync`
 3. Common paths: `/opt/homebrew/bin/fly`, `/usr/local/bin/fly`, `~/.fly/bin/fly`
@@ -128,6 +133,7 @@ Uses `@chrismessina/raycast-logger` for structured, preference-driven logging wi
 **Setup:** Singleton logger in `utils/logger.ts`, imported throughout the extension.
 
 **Usage conventions:**
+
 - `logger.error()` / `logger.warn()` — always visible, for failures and important warnings
 - `logger.info()` — always visible, for key lifecycle events (token validated, machine restarted)
 - `logger.log()` / `logger.debug()` — verbose-only, for API calls, response data, CLI detection steps
@@ -149,6 +155,7 @@ Auth tokens are automatically redacted in log output.
 - SearchBarAccessory: filter by organization
 
 **Actions (with `Keyboard.Shortcut.Common` mappings):**
+
 - `Action.Push` to App Detail — primary action (Enter)
 - Open Dashboard — `Keyboard.Shortcut.Common.Open` (Cmd+O)
 - Open Monitoring — `Keyboard.Shortcut.Common.OpenWith` (Cmd+Shift+O)
@@ -170,6 +177,7 @@ Auth tokens are automatically redacted in log output.
 - SearchBarAccessory: filter by app name
 
 **Actions (with `Keyboard.Shortcut.Common` mappings):**
+
 - `Action.Push` to Machine Detail — primary action (Enter)
 - Start / Stop / Restart — state-aware visibility, custom shortcuts
 - Destroy (destructive) — `Keyboard.Shortcut.Common.Remove` (Ctrl+X)
@@ -198,6 +206,7 @@ Auth tokens are automatically redacted in log output.
 - **Checks section:** name, type, interval, port (if configured)
 
 **Actions (with `Keyboard.Shortcut.Common` mappings):**
+
 - Start / Stop / Restart — state-aware visibility, custom shortcuts
 - Destroy (destructive) — `Keyboard.Shortcut.Common.Remove` (Ctrl+X)
 - Open Dashboard — `Keyboard.Shortcut.Common.Open` (Cmd+O)
@@ -208,17 +217,17 @@ Auth tokens are automatically redacted in log output.
 
 All actions use `Keyboard.Shortcut.Common` where a semantic match exists. This ensures consistency with other Raycast extensions and preserves user muscle memory.
 
-| Action | Shortcut | Common Name |
-|--------|----------|-------------|
-| View detail (push) | Enter | Primary action |
-| Open in browser | Cmd+O | `Common.Open` |
-| Open secondary URL | Cmd+Shift+O | `Common.OpenWith` |
-| Copy primary value | Cmd+Shift+C | `Common.Copy` |
+| Action               | Shortcut    | Common Name       |
+| -------------------- | ----------- | ----------------- |
+| View detail (push)   | Enter       | Primary action    |
+| Open in browser      | Cmd+O       | `Common.Open`     |
+| Open secondary URL   | Cmd+Shift+O | `Common.OpenWith` |
+| Copy primary value   | Cmd+Shift+C | `Common.Copy`     |
 | Copy secondary value | Cmd+Shift+, | `Common.CopyPath` |
-| Refresh list | Cmd+R | `Common.Refresh` |
-| Delete/Destroy | Ctrl+X | `Common.Remove` |
-| Edit/Rename | Cmd+E | `Common.Edit` |
-| Create new | Cmd+N | `Common.New` |
+| Refresh list         | Cmd+R       | `Common.Refresh`  |
+| Delete/Destroy       | Ctrl+X      | `Common.Remove`   |
+| Edit/Rename          | Cmd+E       | `Common.Edit`     |
+| Create new           | Cmd+N       | `Common.New`      |
 
 Destructive actions (restart, destroy) use `Action.Style.Destructive` and require the action to be visually distinct. Destroy uses `Common.Remove`; restart uses a custom shortcut to avoid accidental triggers.
 
@@ -226,13 +235,13 @@ Destructive actions (restart, destroy) use `Action.Style.Destructive` and requir
 
 Shared icon mapping (like Vercast's `StateIcon`):
 
-| State | Icon | Color |
-|-------|------|-------|
-| `DEPLOYED` / `started` | Dot | Green |
-| `SUSPENDED` / `stopped` / `suspended` | Dot | Yellow |
-| `DESTROYED` / `destroyed` | Dot | Red |
-| `created` | Dot | Blue |
-| Unknown | QuestionMark | Secondary |
+| State                                 | Icon         | Color     |
+| ------------------------------------- | ------------ | --------- |
+| `DEPLOYED` / `started`                | Dot          | Green     |
+| `SUSPENDED` / `stopped` / `suspended` | Dot          | Yellow    |
+| `DESTROYED` / `destroyed`             | Dot          | Red       |
+| `created`                             | Dot          | Blue      |
+| Unknown                               | QuestionMark | Secondary |
 
 ## AI Tools
 
@@ -241,42 +250,51 @@ All tools follow Vercast's pattern: typed `Input`, default async export, delegat
 ### Read tools
 
 **get-apps**
+
 - Input: `{ orgName?: string }`
 - Returns: app list with name, state, hostname, org, machine count, regions
 
 **get-machines**
+
 - Input: `{ appName: string }`
 - Returns: machine list with ID, state, region, config summary
 
 **get-volumes**
+
 - Input: `{ appName: string }`
 - Returns: volume list with name, size, region, state
 
 **get-secrets**
+
 - Input: `{ appName: string }`
 - Returns: secret name list (never values)
 
 ### Write tools (with `confirmation` export)
 
 **restart-machine**
+
 - Input: `{ appName: string, machineId: string }`
 - Confirmation: machine ID, app name, current state
 
 **start-machine**
+
 - Input: `{ appName: string, machineId: string }`
 - Confirmation: machine ID, app name, region
 
 **stop-machine**
+
 - Input: `{ appName: string, machineId: string }`
 - Confirmation: machine ID, app name, region
 
 **destroy-machine**
+
 - Input: `{ appName: string, machineId: string }`
 - Confirmation: machine ID, app name, region, current state
 
 ### Evals (`ai.yaml`)
 
 Test scenarios:
+
 - "list my fly apps"
 - "what machines are running for myapp"
 - "restart the machine in iad for myapp"
@@ -287,6 +305,7 @@ Test scenarios:
 ## Fly MCP Integration
 
 **Action: "Install Fly MCP for Claude"** available in Search Apps.
+
 - Runs `fly mcp add` via `execSync` using detected CLI path
 - Shows success/failure toast
 - Requires flyctl to be installed and authenticated
@@ -300,29 +319,34 @@ Complex operations (create app, deploy, configure networking) are best handled v
 ## API Layer
 
 ### `api/graphql.ts`
+
 - Extracted from current `fly.ts`
 - `useGraphQL<T>(query)` hook wrapping `useFetch` with auth header
 - `useApplications()` query (existing, enhanced with cert/IP type fields)
 - `useAppDetail(appName)` query for drill-in views
 
 ### `api/machines.ts`
+
 - REST client for `api.machines.dev/v1/`
 - Functions: `listMachines`, `getMachine`, `startMachine`, `stopMachine`, `restartMachine`, `destroyMachine`
 - All use `node-fetch` with bearer auth
 
 ### `api/types.ts`
+
 - `Application` type (expanded from current)
 - `Machine`, `Volume`, `Secret`, `IPAddress`, `Release`, `Service`, `Mount`, `Check` types
 
 ## Documentation Updates
 
 ### README.md
+
 - Updated features list reflecting all new commands and capabilities
 - Setup section updated with inline onboarding flow description
 - Note about Fly MCP integration for complex operations via Claude
 - Screenshots of new views
 
 ### CHANGELOG.md
+
 - New file documenting v2.0 changes
 
 ## Out of Scope

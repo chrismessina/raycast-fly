@@ -12,4 +12,4 @@ This extension allows you to list all the Fly.io applications you have access to
 
 ## How to setup
 
-Use Fly's CLI [`flyctl auth token`](https://fly.io/docs/flyctl/auth-token/) command to generate an authentication token and set it the extension preferences.
+Use Fly's CLI [`fly tokens create`](https://fly.io/docs/flyctl/tokens-create/) command to generate an authentication token and set it the extension preferences.

@@ -1,6 +1,7 @@
 import { Action, ActionPanel, Detail, Icon, List, Toast, openExtensionPreferences, showToast } from "@raycast/api";
 import uniqolor from "uniqolor";
-import { Application, isAuthenticationError, restartMachine, useApplications } from "./fly";
+import { isAuthenticationError, restartMachine, useApplications } from "./fly";
+import type { Application } from "./fly";
 
 export default function Command() {
   const { data, isLoading } = useApplications();
