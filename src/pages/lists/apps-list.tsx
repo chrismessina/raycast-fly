@@ -16,11 +16,11 @@ interface Props {
 
 export function AppsList({ isLoading: parentLoading }: Props) {
   const { data, isLoading, revalidate } = useApplications();
-  const apps = data?.data?.apps?.nodes ?? [];
+  const apps = (data?.data?.apps?.nodes ?? []).filter(Boolean);
   const loading = parentLoading || isLoading;
 
   // Build org list for filter
-  const orgs = [...new Set(apps.map((a) => a.organization?.name).filter(Boolean))];
+  const orgs = [...new Set(apps.map((a) => a.organization?.name ?? "").filter((n) => n !== ""))];
 
   return (
     <List

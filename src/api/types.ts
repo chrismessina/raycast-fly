@@ -17,10 +17,10 @@ export interface Application {
     minCount: number;
     maxCount: number;
   };
-  organization: {
+  organization?: {
     name: string;
     type?: string;
-  };
+  } | null;
   regions?: { code: string }[];
   machines?: {
     nodes: MachineSummary[];
