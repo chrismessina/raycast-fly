@@ -184,6 +184,11 @@ function appDetailsAsJson(app: Application): string {
   );
 }
 
+const WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
+function numberToWord(n: number): string {
+  return WORDS[n] ?? String(n);
+}
+
 function AppListActions({ app, revalidate }: { app: Application; revalidate: () => void }) {
   const ips = app.ipAddresses?.nodes?.map((ip) => ip.address) ?? [];
 
@@ -233,9 +238,11 @@ function AppListActions({ app, revalidate }: { app: Application; revalidate: () 
             style={Action.Style.Destructive}
             onAction={async () => {
               const machines = app.machines?.nodes ?? [];
+              const count = machines.length;
+              const machineWord = count === 1 ? "one machine" : `${numberToWord(count)} machines`;
               const confirmed = await confirmAlert({
-                title: "Restart Machines",
-                message: `You are about to restart ${machines.length} machine(s) for ${app.name}. Are you sure?`,
+                title: count === 1 ? "Restart Machine" : "Restart Machines",
+                message: `You are about to restart ${machineWord} for ${app.name}. Are you sure?`,
                 icon: Icon.RotateClockwise,
                 primaryAction: {
                   title: "Restart",
@@ -246,7 +253,7 @@ function AppListActions({ app, revalidate }: { app: Application; revalidate: () 
 
               const toast = await showToast({
                 title: app.name,
-                message: `Restarting ${machines.length} machine(s)...`,
+                message: `Restarting ${machineWord}...`,
                 style: Toast.Style.Animated,
               });
               try {
