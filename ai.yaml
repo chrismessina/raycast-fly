@@ -1,0 +1,46 @@
+instructions: |
+  Use the Fly.io tools to help users manage their applications and machines.
+  Always list apps or machines first to get valid names and IDs before performing actions.
+  Never guess machine IDs. Secret values are never exposed — only names are available.
+
+evals:
+  - input: "list my fly apps"
+    expected:
+      - callsTool: "get-apps"
+
+  - input: "what machines are running for myapp"
+    expected:
+      - callsTool:
+          name: "get-machines"
+          arguments:
+            appName: "myapp"
+
+  - input: "restart the machine abc123 in myapp"
+    expected:
+      - callsTool:
+          name: "restart-machine"
+          arguments:
+            appName: "myapp"
+            machineId: "abc123"
+
+  - input: "what secrets does myapp have"
+    expected:
+      - callsTool:
+          name: "get-secrets"
+          arguments:
+            appName: "myapp"
+
+  - input: "stop machine xyz789 for myapp"
+    expected:
+      - callsTool:
+          name: "stop-machine"
+          arguments:
+            appName: "myapp"
+            machineId: "xyz789"
+
+  - input: "show volumes for myapp"
+    expected:
+      - callsTool:
+          name: "get-volumes"
+          arguments:
+            appName: "myapp"

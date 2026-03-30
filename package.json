@@ -2,7 +2,7 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "raycast-fly",
   "title": "Fly.io",
-  "description": "View and modify your Fly.io applications",
+  "description": "View and manage your Fly.io applications and machines",
   "categories": [
     "Developer Tools"
   ],
@@ -14,20 +14,87 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "index",
-      "title": "View Fly.io Applications",
-      "description": "View all of your Fly.io applications",
+      "name": "search-apps",
+      "title": "Search Apps",
+      "description": "Search and manage your Fly.io applications",
+      "mode": "view"
+    },
+    {
+      "name": "search-machines",
+      "title": "Search Machines",
+      "description": "Search and manage Fly.io machines across your apps",
       "mode": "view"
     }
   ],
+  "tools": [
+    {
+      "name": "get-apps",
+      "title": "Get Apps",
+      "description": "List all Fly.io applications with their state, organization, machine count, and regions"
+    },
+    {
+      "name": "get-machines",
+      "title": "Get Machines",
+      "description": "List all machines for a specific Fly.io app with their state, region, CPU, and memory"
+    },
+    {
+      "name": "get-volumes",
+      "title": "Get Volumes",
+      "description": "List all volumes for a specific Fly.io app with name, size, region, and state"
+    },
+    {
+      "name": "get-secrets",
+      "title": "Get Secrets",
+      "description": "List secret names for a specific Fly.io app (values are never exposed)"
+    },
+    {
+      "name": "restart-machine",
+      "title": "Restart Machine",
+      "description": "Restart a specific machine in a Fly.io app"
+    },
+    {
+      "name": "start-machine",
+      "title": "Start Machine",
+      "description": "Start a stopped machine in a Fly.io app"
+    },
+    {
+      "name": "stop-machine",
+      "title": "Stop Machine",
+      "description": "Stop a running machine in a Fly.io app"
+    },
+    {
+      "name": "destroy-machine",
+      "title": "Destroy Machine",
+      "description": "Permanently destroy a machine in a Fly.io app. This cannot be undone."
+    }
+  ],
+  "ai": {
+    "instructions": "Use the Fly.io tools to help users manage their applications and machines. Always list apps or machines first to get valid names and IDs before performing actions. Never guess machine IDs. Secret values are never exposed — only names are available."
+  },
   "preferences": [
     {
       "name": "authToken",
       "type": "password",
       "title": "Authentication Token",
-      "description": "A Fly.io's authentication token used to authenticate requests to the Fly.io API",
-      "placeholder": "See documentation on how to get a token",
+      "description": "Fly.io authentication token",
       "required": true
+    },
+    {
+      "name": "flyBinaryPath",
+      "type": "textfield",
+      "title": "Fly CLI Path",
+      "description": "Custom path to the fly binary (leave empty for auto-detection)",
+      "placeholder": "Auto-detect",
+      "required": false
+    },
+    {
+      "name": "verboseLogging",
+      "type": "checkbox",
+      "title": "Verbose Logging",
+      "description": "Enable detailed logging for debugging",
+      "default": false,
+      "label": "Enable verbose logging",
+      "required": false
     }
   ],
   "dependencies": {
