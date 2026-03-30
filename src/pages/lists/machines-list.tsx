@@ -1,12 +1,4 @@
-import {
-  Action,
-  ActionPanel,
-  Icon,
-  Keyboard,
-  List,
-  Toast,
-  showToast,
-} from "@raycast/api";
+import { Action, ActionPanel, Icon, Keyboard, List, Toast, showToast } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { useApplications } from "../../api/graphql";
 import { listMachines, startMachine, stopMachine, restartMachine, destroyMachine } from "../../api/machines";
@@ -82,15 +74,7 @@ export function MachinesList({ isLoading: parentLoading }: Props) {
   );
 }
 
-function MachineListItem({
-  machine,
-  appName,
-  reload,
-}: {
-  machine: Machine;
-  appName: string;
-  reload: () => void;
-}) {
+function MachineListItem({ machine, appName, reload }: { machine: Machine; appName: string; reload: () => void }) {
   const icon = getMachineStateIcon(machine.state);
   const cpuSpec = `${machine.config.guest.cpu_kind} x${machine.config.guest.cpus}`;
   const memSpec = `${machine.config.guest.memory_mb}MB`;
@@ -100,10 +84,7 @@ function MachineListItem({
       title={machine.id}
       subtitle={machine.region}
       icon={icon}
-      accessories={[
-        { text: `${cpuSpec} / ${memSpec}` },
-        { text: timeAgo(machine.updated_at) },
-      ]}
+      accessories={[{ text: `${cpuSpec} / ${memSpec}` }, { text: timeAgo(machine.updated_at) }]}
       detail={
         <List.Item.Detail
           metadata={

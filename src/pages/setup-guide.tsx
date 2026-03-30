@@ -26,7 +26,7 @@ function detectCliState(): { state: CliState; binaryPath: string | null } {
 
 export function SetupGuide() {
   const { state, binaryPath } = detectCliState();
-  logger.step(`Setup guide: CLI state is "${state}"`);
+  logger.step("setup", `CLI state is "${state}"`);
 
   if (state === "authenticated" && binaryPath) {
     return <AuthenticatedGuide binaryPath={binaryPath} />;
@@ -98,7 +98,11 @@ Found \`flyctl\` but it's **not authenticated**. You need to sign in once via th
       actions={
         <ActionPanel>
           <Action.CopyToClipboard title="Copy Login Command" content="fly auth login" icon={Icon.Terminal} />
-          <Action.Open title="Open Terminal" target="/System/Applications/Utilities/Terminal.app" icon={Icon.Terminal} />
+          <Action.Open
+            title="Open Terminal"
+            target="/System/Applications/Utilities/Terminal.app"
+            icon={Icon.Terminal}
+          />
           <Action title="Set Token Manually" icon={Icon.Gear} onAction={openExtensionPreferences} />
         </ActionPanel>
       }
@@ -137,7 +141,7 @@ If you already have a Fly.io API token, you can set it directly in extension pre
       actions={
         <ActionPanel>
           <Action
-            title="Install via Homebrew Extension"
+            title="Install Via Homebrew Extension"
             icon={Icon.Download}
             onAction={async () => {
               try {

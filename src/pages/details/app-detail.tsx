@@ -1,16 +1,8 @@
-import {
-  Action,
-  ActionPanel,
-  Icon,
-  Keyboard,
-  List,
-  Toast,
-  showToast,
-} from "@raycast/api";
+import { Action, ActionPanel, Icon, Keyboard, List, Toast, showToast } from "@raycast/api";
 import { useAppDetail } from "../../api/graphql";
 import { restartMachine, startMachine, stopMachine, destroyMachine } from "../../api/machines";
-import type { Application, IPAddress, MachineSummary, Release, Secret, Volume } from "../../api/types";
-import { getMachineStateIcon, getAppStateIcon } from "../../utils/icons";
+import type { Application, MachineSummary, Secret } from "../../api/types";
+import { getMachineStateIcon } from "../../utils/icons";
 import { timeAgo } from "../../utils/time";
 import { logger } from "../../utils/logger";
 import { MachineDetail } from "./machine-detail";
@@ -37,11 +29,7 @@ export function AppDetail({ appName }: { appName: string }) {
               <List.Item
                 key={`vol-${i}`}
                 title={vol.name}
-                accessories={[
-                  { text: `${vol.sizeGb} GB` },
-                  { text: vol.region },
-                  { text: vol.state },
-                ]}
+                accessories={[{ text: `${vol.sizeGb} GB` }, { text: vol.region }, { text: vol.state }]}
                 icon={Icon.HardDrive}
               />
             ))}
@@ -81,10 +69,7 @@ export function AppDetail({ appName }: { appName: string }) {
             {app.currentRelease ? (
               <List.Item
                 title={app.currentRelease.imageRef}
-                accessories={[
-                  { text: app.currentRelease.status },
-                  { text: timeAgo(app.currentRelease.createdAt) },
-                ]}
+                accessories={[{ text: app.currentRelease.status }, { text: timeAgo(app.currentRelease.createdAt) }]}
                 icon={Icon.Box}
                 actions={
                   <ActionPanel>

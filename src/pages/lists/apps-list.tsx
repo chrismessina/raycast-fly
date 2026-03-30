@@ -1,12 +1,4 @@
-import {
-  Action,
-  ActionPanel,
-  Icon,
-  Keyboard,
-  List,
-  Toast,
-  showToast,
-} from "@raycast/api";
+import { Action, ActionPanel, Icon, Keyboard, List, Toast, showToast } from "@raycast/api";
 import uniqolor from "uniqolor";
 import { useApplications } from "../../api/graphql";
 import { restartMachine } from "../../api/machines";
@@ -113,10 +105,7 @@ function AppListDetail({ app }: { app: Application }) {
           ) : null}
 
           <List.Item.Detail.Metadata.Label title="Public IPs" text={String(app.ipAddresses?.nodes?.length ?? 0)} />
-          <List.Item.Detail.Metadata.Label
-            title="Certificates"
-            text={String(app.certificates?.nodes?.length ?? 0)}
-          />
+          <List.Item.Detail.Metadata.Label title="Certificates" text={String(app.certificates?.nodes?.length ?? 0)} />
 
           {app.autoscaling?.enabled ? (
             <>
@@ -171,23 +160,13 @@ function AppListActions({ app, revalidate }: { app: Application; revalidate: () 
         shortcut={Keyboard.Shortcut.Common.OpenWith}
       />
 
+      {app.hostname ? <Action.OpenInBrowser title="Open Hostname" url={`https://${app.hostname}`} /> : null}
       {app.hostname ? (
-        <Action.OpenInBrowser title="Open Hostname" url={`https://${app.hostname}`} />
-      ) : null}
-      {app.hostname ? (
-        <Action.CopyToClipboard
-          title="Copy Hostname"
-          content={app.hostname}
-          shortcut={Keyboard.Shortcut.Common.Copy}
-        />
+        <Action.CopyToClipboard title="Copy Hostname" content={app.hostname} shortcut={Keyboard.Shortcut.Common.Copy} />
       ) : null}
 
       {ips.length === 1 ? (
-        <Action.CopyToClipboard
-          title="Copy IP"
-          content={ips[0]}
-          shortcut={Keyboard.Shortcut.Common.CopyPath}
-        />
+        <Action.CopyToClipboard title="Copy IP" content={ips[0]} shortcut={Keyboard.Shortcut.Common.CopyPath} />
       ) : null}
 
       {app.currentRelease ? (

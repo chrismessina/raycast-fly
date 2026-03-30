@@ -9,9 +9,7 @@ type Input = {
 
 export default async function (input: Input) {
   const apps = await fetchApplications();
-  const filtered = input.orgName
-    ? apps.filter((a) => a.organization.name === input.orgName)
-    : apps;
+  const filtered = input.orgName ? apps.filter((a) => a.organization.name === input.orgName) : apps;
 
   return filtered.map((a) => ({
     name: a.name,

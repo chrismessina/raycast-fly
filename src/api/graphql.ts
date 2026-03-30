@@ -160,9 +160,14 @@ export function useAppDetail(appName: string) {
 }
 
 export function isAuthenticationError(data: unknown): boolean {
-  if (typeof data === "object" && data !== null && "errors" in data && Array.isArray((data as { errors: unknown[] }).errors)) {
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "errors" in data &&
+    Array.isArray((data as { errors: unknown[] }).errors)
+  ) {
     return (data as { errors: { extensions?: { code?: string } }[] }).errors.some(
-      (error) => error?.extensions?.code === "UNAUTHORIZED"
+      (error) => error?.extensions?.code === "UNAUTHORIZED",
     );
   }
   return false;

@@ -12,7 +12,7 @@ type Input = {
   machineId: string;
 };
 
-export const confirmation: Tool.Confirmation<Input> = (input) => {
+export const confirmation: Tool.Confirmation<Input> = async (input) => {
   return {
     style: Action.Style.Destructive,
     message: `Permanently destroy machine ${input.machineId} in app ${input.appName}? This cannot be undone.`,

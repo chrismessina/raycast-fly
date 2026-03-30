@@ -12,7 +12,7 @@ type Input = {
   machineId: string;
 };
 
-export const confirmation: Tool.Confirmation<Input> = (input) => {
+export const confirmation: Tool.Confirmation<Input> = async (input) => {
   return {
     message: `Stop machine ${input.machineId} in app ${input.appName}?`,
     info: [

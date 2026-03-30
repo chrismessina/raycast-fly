@@ -1,20 +1,6 @@
-import {
-  Action,
-  ActionPanel,
-  Icon,
-  Keyboard,
-  List,
-  Toast,
-  showToast,
-} from "@raycast/api";
+import { Action, ActionPanel, Icon, Keyboard, List, Toast, showToast } from "@raycast/api";
 import { useEffect, useState } from "react";
-import {
-  getMachine,
-  startMachine,
-  stopMachine,
-  restartMachine,
-  destroyMachine,
-} from "../../api/machines";
+import { getMachine, startMachine, stopMachine, restartMachine, destroyMachine } from "../../api/machines";
 import type { Machine } from "../../api/types";
 import { getMachineStateIcon } from "../../utils/icons";
 import { timeAgo } from "../../utils/time";
@@ -56,24 +42,14 @@ export function MachineDetail({ appName, machineId }: { appName: string; machine
             />
             <List.Item title="Machine ID" accessories={[{ text: machine.id }]} icon={Icon.Fingerprint} />
             <List.Item title="Region" accessories={[{ text: machine.region }]} icon={Icon.Globe} />
-            <List.Item
-              title="Image"
-              accessories={[{ text: machine.config.image }]}
-              icon={Icon.Box}
-            />
-            <List.Item
-              title="Created"
-              accessories={[{ text: timeAgo(machine.created_at) }]}
-              icon={Icon.Calendar}
-            />
+            <List.Item title="Image" accessories={[{ text: machine.config.image }]} icon={Icon.Box} />
+            <List.Item title="Created" accessories={[{ text: timeAgo(machine.created_at) }]} icon={Icon.Calendar} />
           </List.Section>
 
           <List.Section title="Resources">
             <List.Item
               title="CPU"
-              accessories={[
-                { text: `${machine.config.guest.cpu_kind} x${machine.config.guest.cpus}` },
-              ]}
+              accessories={[{ text: `${machine.config.guest.cpu_kind} x${machine.config.guest.cpus}` }]}
               icon={Icon.ComputerChip}
             />
             <List.Item
@@ -135,15 +111,7 @@ export function MachineDetail({ appName, machineId }: { appName: string; machine
   );
 }
 
-function MachineActions({
-  appName,
-  machine,
-  reload,
-}: {
-  appName: string;
-  machine: Machine;
-  reload: () => void;
-}) {
+function MachineActions({ appName, machine, reload }: { appName: string; machine: Machine; reload: () => void }) {
   return (
     <ActionPanel title={machine.id}>
       {machine.state === "stopped" && (
@@ -214,11 +182,7 @@ function MachineActions({
         url={`https://fly.io/apps/${appName}`}
         shortcut={Keyboard.Shortcut.Common.Open}
       />
-      <Action.CopyToClipboard
-        title="Copy Machine ID"
-        content={machine.id}
-        shortcut={Keyboard.Shortcut.Common.Copy}
-      />
+      <Action.CopyToClipboard title="Copy Machine ID" content={machine.id} shortcut={Keyboard.Shortcut.Common.Copy} />
       <Action
         title="Refresh"
         icon={Icon.ArrowClockwise}
