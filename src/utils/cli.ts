@@ -4,26 +4,26 @@ import { logger } from "./logger";
 const FLY_ENV = { ...process.env, FLY_NO_UPDATE_CHECK: "1" };
 
 /**
- * Get the personal org slug from `fly orgs list`.
- * Falls back to "personal" if detection fails.
+ * Get the personal org slug from `fly orgs list --json`.
+ * JSON output is { "slug": "name", ... }. Falls back to "personal".
  */
 function getPersonalOrgSlug(binaryPath: string): string {
   const cliLogger = logger.child("cli");
   try {
-    const output = execSync(`"${binaryPath}" orgs list`, {
+    const output = execSync(`"${binaryPath}" orgs list --json`, {
       encoding: "utf-8",
       timeout: 10000,
       env: FLY_ENV,
     });
-    // Parse the table output — look for PERSONAL type
-    for (const line of output.split("\n")) {
-      if (line.includes("PERSONAL")) {
-        const slug = line.trim().split(/\s+/)[1];
-        if (slug && slug !== "----") {
-          cliLogger.debug(`Found personal org: ${slug}`);
-          return slug;
-        }
-      }
+    const orgs = JSON.parse(output) as Record<string, string>;
+    if ("personal" in orgs) {
+      cliLogger.debug("Found personal org slug");
+      return "personal";
+    }
+    const firstSlug = Object.keys(orgs)[0];
+    if (firstSlug) {
+      cliLogger.debug(`Using first org slug: ${firstSlug}`);
+      return firstSlug;
     }
   } catch {
     cliLogger.warn("Failed to detect org slug, using 'personal'");
