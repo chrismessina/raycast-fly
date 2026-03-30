@@ -1,6 +1,5 @@
 import { List } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { useApplications, isAuthenticationError } from "../api/graphql";
 import { resolveAndCacheToken } from "../utils/auth";
 import { SetupGuide } from "./setup-guide";
 import { logger } from "../utils/logger";
@@ -9,14 +8,48 @@ interface Props {
   children: (args: { isLoading: boolean }) => React.ReactNode;
 }
 
+/**
+ * Validate the token with a lightweight GraphQL query using plain fetch
+ * (not useFetch, which caches responses and won't re-fetch with a new token).
+ */
+async function validateToken(token: string): Promise<boolean> {
+  try {
+    const response = await fetch("https://api.fly.io/graphql", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ query: "{ viewer { email } }" }),
+    });
+    const json = (await response.json()) as { errors?: { extensions?: { code?: string } }[] };
+    if (json.errors?.some((e) => e.extensions?.code === "UNAUTHORIZED")) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function WithValidToken({ children }: Props) {
-  const [tokenState, setTokenState] = useState<"loading" | "missing" | "ready">("loading");
+  const [state, setState] = useState<"loading" | "no-token" | "invalid" | "valid">("loading");
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    setTokenState("loading");
-    resolveAndCacheToken().then((token) => {
-      setTokenState(token ? "ready" : "missing");
+    setState("loading");
+    resolveAndCacheToken().then(async (token) => {
+      if (!token) {
+        setState("no-token");
+        return;
+      }
+      const valid = await validateToken(token);
+      if (valid) {
+        setState("valid");
+      } else {
+        logger.warn("Authentication failed, showing setup guide");
+        setState("invalid");
+      }
     });
   }, [attempt]);
 
@@ -24,28 +57,13 @@ export function WithValidToken({ children }: Props) {
     setAttempt((a) => a + 1);
   }
 
-  if (tokenState === "loading") {
+  if (state === "loading") {
     return <List isLoading={true} />;
   }
 
-  if (tokenState === "missing") {
+  if (state === "no-token" || state === "invalid") {
     return <SetupGuide onTokenSaved={onTokenSaved} />;
   }
 
-  return <TokenValidator onTokenSaved={onTokenSaved}>{children}</TokenValidator>;
-}
-
-function TokenValidator({ children, onTokenSaved }: Props & { onTokenSaved: () => void }) {
-  const { data, isLoading } = useApplications();
-
-  if (isLoading) {
-    return <List isLoading={true} />;
-  }
-
-  if (isAuthenticationError(data)) {
-    logger.warn("Authentication failed, showing setup guide");
-    return <SetupGuide onTokenSaved={onTokenSaved} />;
-  }
-
-  return <>{children({ isLoading })}</>;
+  return <>{children({ isLoading: false })}</>;
 }
