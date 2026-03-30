@@ -1,12 +1,12 @@
-import { getPreferenceValues } from "@raycast/api";
 import fetch from "node-fetch";
+import { getAuthToken } from "../utils/auth";
 import { logger } from "../utils/logger";
 import type { Machine, Volume } from "./types";
 
 const MACHINES_API = "https://api.machines.dev/v1";
 
 function headers(): Record<string, string> {
-  const { authToken } = getPreferenceValues<{ authToken: string }>();
+  const authToken = getAuthToken();
   return {
     Authorization: `Bearer ${authToken}`,
     "Content-Type": "application/json",
@@ -65,7 +65,7 @@ export async function destroyMachine(appName: string, machineId: string, force =
 }
 
 export async function listVolumes(appName: string): Promise<Volume[]> {
-  const { authToken } = getPreferenceValues<{ authToken: string }>();
+  const authToken = getAuthToken();
   const response = await fetch(`${MACHINES_API}/apps/${appName}/volumes`, {
     headers: { Authorization: `Bearer ${authToken}` },
   });

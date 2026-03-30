@@ -1,12 +1,12 @@
-import { getPreferenceValues } from "@raycast/api";
 import { useFetch } from "@raycast/utils";
+import { getAuthToken } from "../utils/auth";
 import { logger } from "../utils/logger";
 import type { Application, ApplicationsResponse, AppDetailResponse, Secret } from "./types";
 
 const GRAPHQL_URL = "https://api.fly.io/graphql";
 
 function useGraphQL<T>(query: string) {
-  const { authToken } = getPreferenceValues<{ authToken: string }>();
+  const authToken = getAuthToken();
 
   return useFetch<T>(GRAPHQL_URL, {
     method: "POST",
@@ -175,7 +175,7 @@ export function isAuthenticationError(data: unknown): boolean {
 
 // Standalone fetch for AI tools (non-hook context)
 export async function fetchApplications(): Promise<Application[]> {
-  const { authToken } = getPreferenceValues<{ authToken: string }>();
+  const authToken = getAuthToken();
   const apiLogger = logger.child("api");
   apiLogger.debug("Fetching applications (standalone)");
 
@@ -206,7 +206,7 @@ export async function fetchApplications(): Promise<Application[]> {
 }
 
 export async function fetchSecrets(appName: string): Promise<Secret[]> {
-  const { authToken } = getPreferenceValues<{ authToken: string }>();
+  const authToken = getAuthToken();
   const apiLogger = logger.child("api");
   apiLogger.debug(`Fetching secrets for app: ${appName}`);
 

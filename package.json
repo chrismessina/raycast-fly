@@ -76,8 +76,8 @@
       "name": "authToken",
       "type": "password",
       "title": "Authentication Token",
-      "description": "Fly.io authentication token",
-      "required": true
+      "description": "Fly.io authentication token (or use Generate Token in the setup guide)",
+      "required": false
     },
     {
       "name": "flyBinaryPath",

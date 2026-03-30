@@ -9,10 +9,12 @@ import {
   launchCommand,
   open,
   openExtensionPreferences,
+  popToRoot,
   showToast,
 } from "@raycast/api";
 import { findFlyBinary, isFlyAuthenticated } from "../api/paths";
 import { generateToken } from "../utils/cli";
+import { saveGeneratedToken } from "../utils/auth";
 import { logger } from "../utils/logger";
 
 type CliState = "not-found" | "not-authenticated" | "authenticated";
@@ -58,13 +60,13 @@ Found \`flyctl\` at \`${binaryPath}\` and it's authenticated.
               try {
                 await showToast({ style: Toast.Style.Animated, title: "Generating token..." });
                 const token = generateToken(binaryPath);
-                await Clipboard.copy(token);
+                await saveGeneratedToken(token);
                 await showToast({
                   style: Toast.Style.Success,
-                  title: "Token generated",
-                  message: "Copied to clipboard. Paste into extension preferences.",
+                  title: "Token saved",
+                  message: "Connecting to Fly.io...",
                 });
-                openExtensionPreferences();
+                await popToRoot();
               } catch (error) {
                 logger.error("Token generation failed", error);
                 const errorMessage = error instanceof Error ? error.message : "Unknown error";
