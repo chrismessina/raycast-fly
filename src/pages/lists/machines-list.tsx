@@ -1,12 +1,12 @@
-import { Action, ActionPanel, Icon, Keyboard, List, Toast, showToast } from "@raycast/api";
+import { Action, ActionPanel, Icon, Keyboard, List } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { useApplications } from "../../api/graphql";
-import { listMachines, startMachine, stopMachine, restartMachine, destroyMachine } from "../../api/machines";
+import { listMachines } from "../../api/machines";
 import type { Machine } from "../../api/types";
 import { getMachineStateIcon } from "../../utils/icons";
 import { timeAgo } from "../../utils/time";
 import { logger } from "../../utils/logger";
-import { showErrorToast } from "../../utils/toast";
+import { MachineActions } from "../../components/machine-actions";
 
 interface Props {
   isLoading: boolean;
@@ -173,70 +173,12 @@ function MachineListItem({ machine, appName, reload }: { machine: Machine; appNa
       }
       actions={
         <ActionPanel title={machine.id}>
-          {machine.state === "stopped" && (
-            <Action
-              title="Start Machine"
-              icon={Icon.Play}
-              onAction={async () => {
-                try {
-                  await startMachine(appName, machine.id);
-                  await showToast({ style: Toast.Style.Success, title: "Machine started" });
-                  reload();
-                } catch (error) {
-                  logger.error("Start failed", error);
-                  await showErrorToast("Failed to start machine", error);
-                }
-              }}
-            />
-          )}
-          {machine.state === "started" && (
-            <Action
-              title="Stop Machine"
-              icon={Icon.Stop}
-              onAction={async () => {
-                try {
-                  await stopMachine(appName, machine.id);
-                  await showToast({ style: Toast.Style.Success, title: "Machine stopped" });
-                  reload();
-                } catch (error) {
-                  logger.error("Stop failed", error);
-                  await showErrorToast("Failed to stop machine", error);
-                }
-              }}
-            />
-          )}
-          {machine.state === "started" && (
-            <Action
-              title="Restart Machine"
-              icon={Icon.RotateClockwise}
-              onAction={async () => {
-                try {
-                  await restartMachine(appName, machine.id);
-                  await showToast({ style: Toast.Style.Success, title: "Machine restarted" });
-                  reload();
-                } catch (error) {
-                  logger.error("Restart failed", error);
-                  await showErrorToast("Failed to restart machine", error);
-                }
-              }}
-            />
-          )}
-
-          <Action
-            title="Destroy Machine"
-            icon={Icon.Trash}
-            style={Action.Style.Destructive}
-            shortcut={Keyboard.Shortcut.Common.Remove}
-            onAction={async () => {
-              try {
-                await destroyMachine(appName, machine.id, true);
-                await showToast({ style: Toast.Style.Success, title: "Machine destroyed" });
-                reload();
-              } catch (error) {
-                logger.error("Destroy failed", error);
-                await showErrorToast("Failed to destroy machine", error);
-              }
-            }}
+          <MachineActions
+            machineId={machine.id}
+            machineState={machine.state}
+            machineRegion={machine.region}
+            appName={appName}
+            onAction={reload}
           />
 
           <Action.OpenInBrowser

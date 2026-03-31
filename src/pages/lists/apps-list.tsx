@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Alert, Icon, Keyboard, List, Toast, confirmAlert, showToast } from "@raycast/api";
+import { Action, ActionPanel, Icon, Keyboard, List, Toast, confirmAlert, showToast } from "@raycast/api";
 import { useState } from "react";
 import uniqolor from "uniqolor";
 import { useApplications } from "../../api/graphql";
@@ -230,45 +230,38 @@ function AppListActions({ app, revalidate }: { app: Application; revalidate: () 
         onAction={revalidate}
       />
 
-      <ActionPanel.Section title="Destructive">
-        {app.state === "DEPLOYED" && (app.machines?.nodes?.length ?? 0) > 0 ? (
-          <Action
-            title="Restart Application"
-            icon={Icon.RotateClockwise}
-            style={Action.Style.Destructive}
-            onAction={async () => {
-              const machines = app.machines?.nodes ?? [];
-              const count = machines.length;
-              const machineWord = count === 1 ? "one machine" : `${numberToWord(count)} machines`;
-              const confirmed = await confirmAlert({
-                title: count === 1 ? "Restart Machine" : "Restart Machines",
-                message: `You are about to restart ${machineWord} for ${app.name}. Are you sure?`,
-                icon: Icon.RotateClockwise,
-                primaryAction: {
-                  title: "Restart",
-                  style: Alert.ActionStyle.Destructive,
-                },
-              });
-              if (!confirmed) return;
+      {app.state === "DEPLOYED" && (app.machines?.nodes?.length ?? 0) > 0 ? (
+        <Action
+          title="Restart Application"
+          icon={Icon.RotateClockwise}
+          onAction={async () => {
+            const machines = app.machines?.nodes ?? [];
+            const count = machines.length;
+            const machineWord = count === 1 ? "one machine" : `${numberToWord(count)} machines`;
+            const confirmed = await confirmAlert({
+              title: count === 1 ? "Restart Machine" : "Restart Machines",
+              message: `You are about to restart ${machineWord} for ${app.name}. Are you sure?`,
+              icon: Icon.RotateClockwise,
+            });
+            if (!confirmed) return;
 
-              const toast = await showToast({
-                title: app.name,
-                message: `Restarting ${machineWord}...`,
-                style: Toast.Style.Animated,
-              });
-              try {
-                await Promise.all(machines.map((m) => restartMachine(app.name, m.id)));
-                toast.message = "All machines restarted";
-                toast.style = Toast.Style.Success;
-                revalidate();
-              } catch (error) {
-                logger.error("Restart failed", error);
-                await showErrorToast("Failed to restart application", error);
-              }
-            }}
-          />
-        ) : null}
-      </ActionPanel.Section>
+            const toast = await showToast({
+              title: app.name,
+              message: `Restarting ${machineWord}...`,
+              style: Toast.Style.Animated,
+            });
+            try {
+              await Promise.all(machines.map((m) => restartMachine(app.name, m.id)));
+              toast.message = "All machines restarted";
+              toast.style = Toast.Style.Success;
+              revalidate();
+            } catch (error) {
+              logger.error("Restart failed", error);
+              await showErrorToast("Failed to restart application", error);
+            }
+          }}
+        />
+      ) : null}
 
       <ActionPanel.Section title="Utilities">
         <Action.Push title="Set up Fly MCP Server" icon={Icon.Plug} target={<McpGuide />} />
