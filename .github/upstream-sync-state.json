@@ -1,0 +1,20 @@
+{
+  "upstream_commit": "a03e4c58dd53593042397b412413afda7117790e",
+  "synced_at": "2026-09-03T01:26:19Z",
+  "files": {
+    ".eslintrc.json": "e6258e11d914332362f1d501cb01a7163c1cf29a",
+    ".gitignore": "84fc7188f5137d9f72743561e242133d2ae0d431",
+    ".prettierrc": "b7d51e04aa8d3cd8c5ae5c1c1d701bfee1e6c361",
+    "assets/command-icon.png": "933547a0522815133b5dcd78f78bc0758dd4c54a",
+    "CHANGELOG.md": "2b6c7d28c05be336f017edf106c53930febe7a68",
+    "metadata/raycast-fly-2.png": "4a0cae862c6595ccf1c867836ce73dcb21181a57",
+    "metadata/raycast-fly-3.png": "faa4a8b310b58f6df01d13d75f4937a43c03fd7a",
+    "metadata/raycast-fly-4.png": "430a2a2182ca7d49e9464da1239359dc795f0bf3",
+    "package-lock.json": "7dd7cf6e259b391898ed1ee412864bac01d79c02",
+    "package.json": "8bf3c114a2991f66408b64b8beec965803e97abc",
+    "README.md": "87f360e5d5da5638e222d054dd291730fa1559df",
+    "src/fly.ts": "22de6a6812923fd9c607a60d3bb75b8b53ba1665",
+    "src/index.tsx": "01ea76f218be5a83ef4a8b9aef5589b25c3d3363",
+    "tsconfig.json": "abb15806beca5a20e5408097fbaf39c6c7517129"
+  }
+}
